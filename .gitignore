@@ -61,6 +61,14 @@ ehthumbs.db
 *.cpuprofile
 *.heapsnapshot
 
+# Diagnostic and analysis files
+*DIAGNOSTIC*.md
+*ANALYSIS*.md
+*ARCHITECTURE*.md
+*DEBUGGING*.md
+*REPORT*.md
+.roo/
+
 # Package manager files
 yarn.lock
 package-lock.json
