@@ -1,44 +1,53 @@
-import React, { memo, useState } from 'react';
 import {
-  Plus, Moon, Sun, Package, ChefHat, FileText,
-  Calculator, Zap, Settings, BookOpen
+  BookOpen,
+  Calculator,
+  ChefHat,
+  FileText,
+  Moon,
+  Package,
+  Plus,
+  Settings,
+  Sun,
+  Zap
 } from 'lucide-react';
-import { useApp } from '../context/AppContext';
-import { ActionType } from '../constants';
-import { Button, ErrorBoundary, Toast, MobileNavigation, ResponsiveContainer } from './ui';
-import { useMobileDetection } from '../hooks';
-import RecipeGrid from './features/RecipeGrid';
-import RecipeFilters from './features/RecipeFilters';
-import RecipeModal from './features/RecipeModal';
-import IngredientsManager from './features/IngredientsManager';
-import MenuBuilder from './features/MenuBuilder';
-import BatchScalingCalculator from './features/BatchScalingCalculator';
-import AIAssistant from './features/AIAssistant';
-import TechniquesManager from './features/TechniquesManager';
-import ServiceMode from './features/ServiceMode';
-import SettingsModal from './features/SettingsModal';
+import React, { memo, useState } from 'react';
 
-/**
- * Main Application Component
- * Contains the primary layout and navigation for the cocktail recipe app
- */
+import { ActionType } from '../constants';
+import { useMobileDetection } from '../hooks';
+import { useApp } from '../hooks/useApp';
+
+import {
+  AIAssistant, AuthModal, BatchScalingCalculator, ComparisonModal, IngredientsManager,
+  MenuBuilder,
+  RecipeFilters,
+  RecipeGrid, RecipeModal, SettingsModal, TechniquesManager
+} from './features';
+import { Button, ErrorBoundary, MobileNavigation, ResponsiveContainer, SyncStatusIndicator, Toast } from './ui';
+
+
+
+
+const TABS = [
+  { id: 'recipes', label: 'Recipes', icon: ChefHat, component: () => <><RecipeFilters /><RecipeGrid /></> },
+  { id: 'ingredients', label: 'Ingredients', icon: Package, component: IngredientsManager },
+  { id: 'menus', label: 'Menus', icon: FileText, component: MenuBuilder },
+  { id: 'techniques', label: 'Techniques', icon: BookOpen, component: TechniquesManager },
+  { id: 'batch', label: 'Batch Scaling', icon: Calculator, component: BatchScalingCalculator },
+  { id: 'ai', label: 'AI Assistant', icon: Zap, component: AIAssistant }
+];
+
 const MainApp = memo(() => {
   const { state, dispatch } = useApp();
   const { theme, activeTab, serviceMode, modal } = state;
+
   const [showSettings, setShowSettings] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const { isMobile } = useMobileDetection();
 
   const handleThemeToggle = () => {
     dispatch({
       type: ActionType.SET_THEME,
       payload: theme === 'light' ? 'dark' : 'light'
-    });
-  };
-
-  const handleTabChange = (tab) => {
-    dispatch({
-      type: ActionType.SET_ACTIVE_TAB,
-      payload: tab
     });
   };
 
@@ -56,32 +65,21 @@ const MainApp = memo(() => {
     });
   };
 
-  // Apply theme to document
   React.useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  const tabs = [
-    { id: 'recipes', label: 'Recipes', icon: ChefHat },
-    { id: 'ingredients', label: 'Ingredients', icon: Package },
-    { id: 'menus', label: 'Menus', icon: FileText },
-    { id: 'techniques', label: 'Techniques', icon: BookOpen },
-    { id: 'batch', label: 'Batch Scaling', icon: Calculator },
-    { id: 'ai', label: 'AI Assistant', icon: Zap }
-  ];
+
 
   return (
-    <div className={`min-h-screen transition-colors ${
-      theme === 'dark' 
-        ? 'bg-gray-900 text-gray-100' 
-        : 'bg-gray-100 text-gray-900'
-    }`}>
-      {/* Header - Desktop Only */}
+    <div className={`min-h-screen transition-colors ${theme === 'dark'
+      ? 'bg-gray-900 text-gray-100'
+      : 'bg-gray-100 text-gray-900'
+      }`}>
       {!isMobile && (
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              {/* Logo and Title */}
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center">
                   <ChefHat className="w-5 h-5 text-white" />
@@ -96,88 +94,61 @@ const MainApp = memo(() => {
                 </div>
               </div>
 
-            {/* Header Actions */}
-            <div className="flex items-center gap-2">
-              {/* Service Mode Toggle */}
-              <Button
-                onClick={handleServiceModeToggle}
-                variant={serviceMode ? 'primary' : 'ghost'}
-                className="hidden sm:flex"
-                ariaLabel={serviceMode ? 'Exit service mode' : 'Enter service mode'}
-              >
-                <Zap className="w-4 h-4" />
-                Service Mode
-              </Button>
-
-              {/* Create Recipe Button */}
-              <Button
-                onClick={handleCreateRecipe}
-                variant="primary"
-                className="hidden sm:flex"
-                ariaLabel="Create new recipe"
-              >
-                <Plus className="w-4 h-4" />
-                New Recipe
-              </Button>
-
-              {/* Theme Toggle */}
-              <Button
-                onClick={handleThemeToggle}
-                variant="ghost"
-                className="p-2"
-                ariaLabel={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              >
-                {theme === 'light' ? (
-                  <Moon className="w-5 h-5" />
-                ) : (
-                  <Sun className="w-5 h-5" />
-                )}
-              </Button>
-
-              {/* Settings */}
-              <Button
-                onClick={() => setShowSettings(true)}
-                variant="ghost"
-                className="p-2"
-                ariaLabel="Open settings"
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <SyncStatusIndicator
+                  onAuthClick={() => setShowAuth(true)}
+                  className="hidden sm:block"
+                />
+                <Button
+                  onClick={handleServiceModeToggle}
+                  variant={serviceMode ? 'primary' : 'ghost'}
+                  className="hidden sm:flex"
+                  ariaLabel={serviceMode ? 'Exit service mode' : 'Enter service mode'}
+                >
+                  <Zap className="w-4 h-4" />
+                  Service Mode
+                </Button>
+                <Button
+                  onClick={handleCreateRecipe}
+                  variant="primary"
+                  className="hidden sm:flex"
+                  ariaLabel="Create new recipe"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Recipe
+                </Button>
+                <Button
+                  onClick={handleThemeToggle}
+                  variant="ghost"
+                  className="p-2"
+                  ariaLabel={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                >
+                  {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                </Button>
+                <Button
+                  onClick={() => setShowSettings(true)}
+                  variant="ghost"
+                  className="p-2"
+                  ariaLabel="Open settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
       )}
 
-      {/* Navigation */}
-      <MobileNavigation tabs={tabs} />
+      <MobileNavigation tabs={TABS} />
 
-      {/* Main Content */}
       <main>
         <ResponsiveContainer>
-        <ErrorBoundary
-          title={`Error in ${tabs.find(t => t.id === activeTab)?.label || 'Unknown'} Tab`}
-          message="There was an error loading this section. Please try refreshing or switching to another tab."
-        >
-          {activeTab === 'recipes' && (
-            <div>
-              <RecipeFilters />
-              <RecipeGrid />
-            </div>
-          )}
-          
-          {activeTab === 'ingredients' && <IngredientsManager />}
-
-          {activeTab === 'menus' && <MenuBuilder />}
-
-          {activeTab === 'techniques' && <TechniquesManager />}
-
-          {activeTab === 'batch' && <BatchScalingCalculator />}
-
-          {activeTab === 'ai' && <AIAssistant />}
-
-          {activeTab === 'service' && <ServiceMode />}
-        </ErrorBoundary>
+          <ErrorBoundary
+            title={`Error in ${TABS.find(t => t.id === activeTab)?.label || 'Unknown'} Tab`}
+            message="There was an error loading this section. Please try refreshing or switching to another tab."
+          >
+            {TABS.find(t => t.id === activeTab)?.component && React.createElement(TABS.find(t => t.id === activeTab).component)}
+          </ErrorBoundary>
         </ResponsiveContainer>
       </main>
 
@@ -199,11 +170,23 @@ const MainApp = memo(() => {
         />
       )}
 
+      {modal.isOpen && modal.view === 'comparison' && (
+        <ComparisonModal />
+      )}
+
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
         />
       )}
+
+      <AuthModal
+        isOpen={showAuth}
+        onClose={() => setShowAuth(false)}
+        onAuthSuccess={() => {
+          setShowAuth(false);
+        }}
+      />
 
       {/* Toast Notifications */}
       <Toast />

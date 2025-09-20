@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
 import { renderWithProviders, userEvent } from '../utils/test-utils';
-import Button from '../../components/ui/Button';
 
 describe('Button Component', () => {
   it('renders with default props', () => {
@@ -83,7 +83,8 @@ describe('Button Component', () => {
     );
 
     const button = getByRole('button');
-    expect(button).toHaveClass('px-6', 'py-3');
+    // Large size uses px-8 py-4 for touch optimization
+    expect(button).toHaveClass('px-8', 'py-4');
   });
 
   it('supports keyboard navigation', async () => {

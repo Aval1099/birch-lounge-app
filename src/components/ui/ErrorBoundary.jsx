@@ -1,5 +1,6 @@
-import React from 'react';
+/* eslint-disable unused-imports/no-unused-imports */
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React from 'react';
 
 /**
  * Error Boundary component to catch and handle React component errors
@@ -7,10 +8,10 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null
     };
   }
 
@@ -22,7 +23,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Log error details
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     this.setState({
       error,
       errorInfo
@@ -35,10 +36,10 @@ class ErrorBoundary extends React.Component {
   }
 
   handleReset = () => {
-    this.setState({ 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
     });
   };
 
@@ -56,13 +57,13 @@ class ErrorBoundary extends React.Component {
             <div className="mb-4">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
             </div>
-            
+
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               {this.props.title || 'Something went wrong'}
             </h2>
-            
+
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {this.props.message || 
+              {this.props.message ||
                 'An unexpected error occurred. Please try refreshing or contact support if the problem persists.'}
             </p>
 
@@ -97,35 +98,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-/**
- * Higher-order component to wrap components with error boundary
- * @param {React.Component} Component - Component to wrap
- * @param {Object} errorBoundaryProps - Props for error boundary
- * @returns {React.Component} Wrapped component
- */
-export const withErrorBoundary = (Component, errorBoundaryProps = {}) => {
-  const WrappedComponent = (props) => (
-    <ErrorBoundary {...errorBoundaryProps}>
-      <Component {...props} />
-    </ErrorBoundary>
-  );
-
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
-  return WrappedComponent;
-};
-
-/**
- * Hook to handle errors in functional components
- * @returns {Function} Error handler function
- */
-export const useErrorHandler = () => {
-  return (error, errorInfo) => {
-    console.error('Error caught by useErrorHandler:', error, errorInfo);
-    
-    // You could dispatch to a global error state here
-    // or send to an error reporting service
-  };
-};
+// Utility functions moved to src/utils/errorBoundaryUtils.js
+// to avoid React Fast Refresh issues
 
 export default ErrorBoundary;

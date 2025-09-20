@@ -1,5 +1,3 @@
-
-
 /** @type { import('@storybook/react-vite').StorybookConfig } */
 const config = {
   stories: ['../src/**/*.stories.@(js|jsx|ts|tsx|mdx)'],
@@ -8,7 +6,8 @@ const config = {
     '@storybook/addon-essentials',
     '@storybook/addon-interactions',
     '@storybook/addon-a11y',
-    '@storybook/addon-docs'
+    '@storybook/addon-viewport',
+    '@storybook/addon-docs',
   ],
   framework: {
     name: '@storybook/react-vite',
@@ -17,8 +16,14 @@ const config = {
   docs: {
     autodocs: 'tag',
   },
-  typescript: {
-    reactDocgen: 'react-docgen-typescript',
+  viteFinal: async (config) => {
+    // Customize Vite config for Storybook
+    config.define = {
+      ...config.define,
+      global: 'globalThis',
+    };
+    
+    return config;
   },
 };
 

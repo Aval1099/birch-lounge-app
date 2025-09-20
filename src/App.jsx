@@ -1,6 +1,8 @@
-import { AppProvider } from './context/AppContext';
-import { ErrorBoundary } from './components/ui';
+
+/* eslint-disable unused-imports/no-unused-imports */
 import MainApp from './components/MainApp';
+import { ErrorBoundary } from './components/ui';
+import { AppProvider } from './context/AppContext';
 
 /**
  * Root App Component

@@ -1,12 +1,15 @@
-import React, { memo, useState, useCallback } from 'react';
-import { 
-  X, Save, Download, Upload, Trash2, Moon, Sun, 
-  Zap, Database, Key, AlertTriangle, Check 
+/* eslint-disable unused-imports/no-unused-imports */
+import {
+  Database, Key,
+  Save,
+  Sun
 } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { memo, useCallback, useState } from 'react';
+
 import { ActionType } from '../../constants';
-import { Button, Input, Select } from '../ui';
+import { useApp } from '../../hooks/useApp';
 import { storageService } from '../../services/storageService';
+import { validationService } from '../../services/validation';
 
 /**
  * Settings Modal Component - Application configuration and preferences
@@ -35,7 +38,7 @@ const SettingsModal = memo(({ onClose }) => {
 
   const handleSaveApiKey = useCallback(async () => {
     setIsSubmitting(true);
-    
+
     try {
       dispatch({
         type: ActionType.SET_GEMINI_API_KEY,
@@ -74,11 +77,11 @@ const SettingsModal = memo(({ onClose }) => {
     try {
       setExportStatus('exporting');
       const data = storageService.exportData();
-      
+
       const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: 'application/json'
       });
-      
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -87,7 +90,7 @@ const SettingsModal = memo(({ onClose }) => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       setExportStatus('success');
       setTimeout(() => setExportStatus(null), 3000);
     } catch (error) {
@@ -101,15 +104,36 @@ const SettingsModal = memo(({ onClose }) => {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Step 1: Validate file before reading
+    const fileValidation = validationService.validateFile(file);
+    if (!fileValidation.isValid) {
+      dispatch({
+        type: ActionType.SET_NOTIFICATION,
+        payload: {
+          message: `File validation failed: ${fileValidation.errors.join(', ')}`,
+          type: 'error'
+        }
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const data = JSON.parse(e.target.result);
-        
+        // Step 2: Safely parse JSON with security checks
+        const parseResult = validationService.validateImportData(e.target.result);
+        if (!parseResult.isValid) {
+          throw new Error(parseResult.errors.join(', '));
+        }
+
+        const data = parseResult.data;
+
+        // Step 3: Confirm with user
         if (window.confirm('This will replace all current data. Are you sure?')) {
+          // Step 4: Import data with validation
           storageService.importData(data);
           dispatch({ type: ActionType.INITIALIZE_APP });
-          
+
           dispatch({
             type: ActionType.SET_NOTIFICATION,
             payload: {
@@ -120,16 +144,30 @@ const SettingsModal = memo(({ onClose }) => {
         }
       } catch (error) {
         console.error('Import error:', error);
+        let errorMessage = 'Failed to import data.';
+
+        if (error.message.includes('validation failed')) {
+          errorMessage = `Import validation failed: ${error.message}`;
+        } else if (error.message.includes('JSON parsing failed')) {
+          errorMessage = 'Invalid JSON file format.';
+        } else if (error.message.includes('File size')) {
+          errorMessage = 'File too large. Maximum size is 10MB.';
+        } else if (error.message.includes('File type')) {
+          errorMessage = 'Invalid file type. Only JSON files are allowed.';
+        } else {
+          errorMessage = `Import failed: ${error.message}`;
+        }
+
         dispatch({
           type: ActionType.SET_NOTIFICATION,
           payload: {
-            message: 'Failed to import data. Invalid file format.',
+            message: errorMessage,
             type: 'error'
           }
         });
       }
     };
-    
+
     reader.readAsText(file);
     event.target.value = ''; // Reset file input
   }, [dispatch]);
@@ -139,7 +177,7 @@ const SettingsModal = memo(({ onClose }) => {
       if (window.confirm('Are you absolutely sure? This will delete everything!')) {
         storageService.clearAllData();
         dispatch({ type: ActionType.INITIALIZE_APP });
-        
+
         dispatch({
           type: ActionType.SET_NOTIFICATION,
           payload: {
@@ -158,14 +196,23 @@ const SettingsModal = memo(({ onClose }) => {
   ];
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-modal-title"
+      tabIndex={-1}
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="settings-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Settings
           </h2>
           <Button
@@ -188,11 +235,10 @@ const SettingsModal = memo(({ onClose }) => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === tab.id
+                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
                   >
                     <Icon className="w-4 h-4" />
                     {tab.label}
@@ -210,7 +256,7 @@ const SettingsModal = memo(({ onClose }) => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                     Appearance
                   </h3>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -242,7 +288,7 @@ const SettingsModal = memo(({ onClose }) => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                     Service Mode
                   </h3>
-                  
+
                   <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div>
                       <h4 className="font-medium text-gray-900 dark:text-gray-100">
@@ -271,7 +317,7 @@ const SettingsModal = memo(({ onClose }) => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                     Gemini AI Configuration
                   </h3>
-                  
+
                   <div className="space-y-4">
                     <Input
                       label="API Key"
@@ -281,19 +327,19 @@ const SettingsModal = memo(({ onClose }) => {
                       placeholder="Enter your Gemini API key"
                       maxLength={200}
                     />
-                    
+
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Get your API key from{' '}
-                      <a 
-                        href="https://makersuite.google.com/app/apikey" 
-                        target="_blank" 
+                      <a
+                        href="https://makersuite.google.com/app/apikey"
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-700 underline"
                       >
                         Google AI Studio
                       </a>
                     </p>
-                    
+
                     <Button
                       onClick={handleSaveApiKey}
                       variant="primary"
@@ -315,7 +361,7 @@ const SettingsModal = memo(({ onClose }) => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                     Backup & Restore
                   </h3>
-                  
+
                   <div className="space-y-4">
                     <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                       <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
@@ -380,7 +426,7 @@ const SettingsModal = memo(({ onClose }) => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                     Danger Zone
                   </h3>
-                  
+
                   <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
@@ -389,7 +435,7 @@ const SettingsModal = memo(({ onClose }) => {
                           Clear All Data
                         </h4>
                         <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-                          This will permanently delete all recipes, ingredients, menus, batches, and settings. 
+                          This will permanently delete all recipes, ingredients, menus, batches, and settings.
                           This action cannot be undone.
                         </p>
                         <Button

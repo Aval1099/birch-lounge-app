@@ -2,14 +2,15 @@
 // RESPONSIVE GRID COMPONENT
 // =============================================================================
 
-import React, { memo } from 'react';
+import { memo } from 'react';
+
 import { useMobileDetection } from '../../hooks';
 
 /**
  * Responsive grid component that adapts to screen size
  */
-const ResponsiveGrid = memo(({ 
-  children, 
+const ResponsiveGrid = memo(({
+  children,
   className = '',
   cols = {
     xs: 1,
@@ -19,7 +20,7 @@ const ResponsiveGrid = memo(({
     xl: 4
   },
   gap = 'gap-4',
-  ...props 
+  ...props
 }) => {
   const { screenSize } = useMobileDetection();
 
@@ -55,13 +56,13 @@ ResponsiveGrid.displayName = 'ResponsiveGrid';
 /**
  * Responsive card component with touch-optimized interactions
  */
-export const ResponsiveCard = memo(({ 
-  children, 
+export const ResponsiveCard = memo(({
+  children,
   className = '',
   onClick = null,
   onLongPress = null,
   interactive = false,
-  ...props 
+  ...props
 }) => {
   const { isMobile, isTouch } = useMobileDetection();
 
@@ -75,8 +76,8 @@ export const ResponsiveCard = memo(({
 
   const interactiveClasses = interactive ? [
     'cursor-pointer',
-    isMobile || isTouch 
-      ? 'active:scale-95 active:shadow-lg' 
+    isMobile || isTouch
+      ? 'active:scale-95 active:shadow-lg'
       : 'hover:shadow-md hover:-translate-y-1'
   ] : [];
 
@@ -110,10 +111,16 @@ export const ResponsiveCard = memo(({
   };
 
   return (
-    <div 
+    <div
       className={cardClasses}
       onClick={handleClick}
       onTouchStart={handleTouchStart}
+      onKeyDown={(e) => {
+        if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          handleClick(e);
+        }
+      }}
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
       {...props}
@@ -128,13 +135,13 @@ ResponsiveCard.displayName = 'ResponsiveCard';
 /**
  * Mobile-optimized list component
  */
-export const ResponsiveList = memo(({ 
-  items = [], 
-  renderItem, 
+export const ResponsiveList = memo(({
+  items = [],
+  renderItem,
   className = '',
   itemClassName = '',
   emptyMessage = 'No items found',
-  ...props 
+  ...props
 }) => {
   const { isMobile } = useMobileDetection();
 
@@ -177,11 +184,11 @@ ResponsiveList.displayName = 'ResponsiveList';
 /**
  * Responsive container with proper padding and max-width
  */
-export const ResponsiveContainer = memo(({ 
-  children, 
+export const ResponsiveContainer = memo(({
+  children,
   className = '',
   size = 'default',
-  ...props 
+  ...props
 }) => {
   const { isMobile } = useMobileDetection();
 
@@ -209,55 +216,124 @@ export const ResponsiveContainer = memo(({
 ResponsiveContainer.displayName = 'ResponsiveContainer';
 
 /**
- * Mobile-optimized modal component
+ * Enhanced ResponsiveModal - Automatically switches between Modal and BottomSheet
+ *
+ * Features:
+ * - Automatic device detection
+ * - Bottom sheet on mobile with gesture support
+ * - Traditional modal on desktop
+ * - Consistent API for both components
  */
-export const ResponsiveModal = memo(({ 
-  isOpen, 
-  onClose, 
-  children, 
-  title = '',
+export const ResponsiveModal = memo(({
+  isOpen = false,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  height = 'auto',
+  showCloseButton = true,
+  backdrop = true,
+  swipeToClose = true,
+  forceDesktop = false,
+  forceMobile = false,
   className = '',
-  size = 'default',
-  ...props 
+  ...props
 }) => {
-  const { isMobile, viewportHeight } = useMobileDetection();
+  const { isMobile } = useMobileDetection();
+
+  // Determine which component to render
+  const shouldUseBottomSheet = forceMobile || (isMobile && !forceDesktop);
 
   if (!isOpen) return null;
 
+  if (shouldUseBottomSheet) {
+    // Mobile: Use bottom sheet style
+    return (
+      <>
+        {/* Backdrop */}
+        {backdrop && (
+          <div
+            className={`
+              fixed inset-0 z-50 bg-black/50 backdrop-blur-sm
+              transition-opacity duration-300 ease-out
+              ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+            `}
+            onClick={onClose}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Bottom Sheet */}
+        <div
+          className={`
+            fixed bottom-0 left-0 right-0 z-50
+            bg-white dark:bg-gray-900
+            rounded-t-2xl shadow-2xl
+            transform transition-transform duration-300 ease-out
+            ${isOpen ? 'translate-y-0' : 'translate-y-full'}
+            ${height === 'auto' ? 'max-h-[80vh]' :
+              height === 'half' ? 'h-[50vh]' :
+                height === 'full' ? 'h-[90vh]' : height}
+            ${className}
+          `}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={title ? 'bottom-sheet-title' : undefined}
+          {...props}
+        >
+          {/* Handle */}
+          <div className="flex justify-center pt-3 pb-2">
+            <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          </div>
+
+          {/* Header */}
+          {title && (
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2
+                id="bottom-sheet-title"
+                className="text-lg font-semibold text-gray-900 dark:text-gray-100"
+              >
+                {title}
+              </h2>
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto overscroll-contain">
+            {children}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Desktop: Use traditional modal
   const sizeClasses = {
-    sm: isMobile ? 'w-full h-full' : 'max-w-md',
-    default: isMobile ? 'w-full h-full' : 'max-w-2xl',
-    lg: isMobile ? 'w-full h-full' : 'max-w-4xl',
-    full: 'w-full h-full'
+    sm: 'max-w-md',
+    md: 'max-w-2xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-6xl',
+    full: 'max-w-full'
   };
 
-  const modalClasses = [
-    'fixed inset-0 z-50 flex',
-    isMobile ? 'items-start' : 'items-center justify-center',
-    'p-0'
-  ].join(' ');
-
-  const contentClasses = [
-    'bg-white dark:bg-gray-800',
-    isMobile ? 'w-full h-full rounded-none' : 'rounded-xl shadow-xl',
-    sizeClasses[size],
-    isMobile ? 'overflow-y-auto' : 'max-h-[90vh] overflow-hidden',
-    className
-  ].filter(Boolean).join(' ');
-
   return (
-    <div className={modalClasses} {...props}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" {...props}>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      
+      {backdrop && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Modal Content */}
-      <div 
-        className={contentClasses}
-        style={isMobile ? { height: `${viewportHeight}px` } : {}}
+      <div
+        className={`
+          bg-white dark:bg-gray-800 rounded-xl shadow-xl
+          ${sizeClasses[size]} w-full max-h-[90vh] overflow-hidden
+          ${className}
+        `}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}

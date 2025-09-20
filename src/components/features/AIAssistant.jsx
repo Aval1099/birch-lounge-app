@@ -1,14 +1,12 @@
-import React, { memo, useState, useCallback, useRef, useEffect } from 'react';
-import {
-  Send, Bot, User, Loader, AlertCircle, Settings,
-  Sparkles, ChefHat, X, Copy, Check, Upload, FileText,
-  CheckCircle, BookOpen, Trash2
-} from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+
 import { ActionType } from '../../constants';
-import { Button, Input, Textarea, LoadingSpinner } from '../ui';
+import { useApp } from '../../hooks/useApp';
+import { apiKeyService } from '../../services/apiKeyService';
 import { geminiService } from '../../services/geminiService';
 import { processPDFRecipeBook } from '../../services/pdfService';
+
 
 /**
  * AI Assistant Component - Gemini AI integration for recipe suggestions and variations
@@ -20,6 +18,7 @@ const AIAssistant = memo(() => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showKeyRotationModal, setShowKeyRotationModal] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const [showPDFUpload, setShowPDFUpload] = useState(false);
   const [pdfProcessing, setPdfProcessing] = useState({
@@ -42,84 +41,108 @@ const AIAssistant = memo(() => {
   // Check if API key is configured
   const isConfigured = Boolean(geminiApiKey);
 
-  // PDF Processing Functions
+  // PDF Processing Functions with Error Boundary
   const handlePDFUpload = useCallback(async (file) => {
     if (!file || !isConfigured) return;
 
-    setPdfProcessing({
-      isProcessing: true,
-      stage: 'extracting',
-      progress: 0,
-      currentPage: 0,
-      totalPages: 0,
-      recipesFound: 0
-    });
-
-    try {
-      const result = await processPDFRecipeBook(file, (progress) => {
-        setPdfProcessing(prev => ({
-          ...prev,
-          ...progress
-        }));
-      });
-
-      if (result.success) {
-        // Add recipes to the app state
-        result.recipes.forEach(recipe => {
-          dispatch({
-            type: ActionType.ADD_RECIPE,
-            payload: recipe
-          });
-        });
-
-        // Add success message to chat
-        const successMessage = {
-          id: Date.now(),
-          type: 'assistant',
-          content: `🎉 ${result.message}\n\nI've successfully imported ${result.totalRecipes} recipes into your collection. You can now find them in your recipe library!`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, successMessage]);
-
-        // Show success notification
-        dispatch({
-          type: ActionType.SET_NOTIFICATION,
-          payload: {
-            message: `Successfully imported ${result.totalRecipes} recipes from PDF`,
-            type: 'success'
-          }
-        });
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      // Add error message to chat
-      const errorMessage = {
-        id: Date.now(),
-        type: 'assistant',
-        content: `❌ Sorry, I encountered an error while processing your PDF: ${error.message}\n\nPlease make sure the PDF contains readable text and try again.`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-
-      // Show error notification
-      dispatch({
-        type: ActionType.SET_NOTIFICATION,
-        payload: {
-          message: `Failed to process PDF: ${error.message}`,
-          type: 'error'
-        }
-      });
-    } finally {
+    const processWithBoundary = async () => {
       setPdfProcessing({
-        isProcessing: false,
-        stage: '',
+        isProcessing: true,
+        stage: 'extracting',
         progress: 0,
         currentPage: 0,
         totalPages: 0,
         recipesFound: 0
       });
-      setShowPDFUpload(false);
+
+      try {
+        const result = await processPDFRecipeBook(file, (progress) => {
+          setPdfProcessing(prev => ({
+            ...prev,
+            ...progress
+          }));
+        });
+
+        if (result.success) {
+          // Add recipes to the app state
+          result.recipes.forEach(recipe => {
+            dispatch({
+              type: ActionType.ADD_RECIPE,
+              payload: recipe
+            });
+          });
+
+          // Add success message to chat
+          const successMessage = {
+            id: Date.now(),
+            type: 'assistant',
+            content: `🎉 ${result.message}\n\nI've successfully imported ${result.totalRecipes} recipes into your collection. You can now find them in your recipe library!`,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, successMessage]);
+
+          // Show success notification
+          dispatch({
+            type: ActionType.SET_NOTIFICATION,
+            payload: {
+              message: `Successfully imported ${result.totalRecipes} recipes from PDF`,
+              type: 'success'
+            }
+          });
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        // Add error message to chat with enhanced error context
+        const errorContext = {
+          type: error.name || 'PDFProcessingError',
+          message: error.message || 'Unknown PDF processing error',
+          stack: error.stack,
+          timestamp: new Date().toISOString()
+        };
+
+        const errorMessage = {
+          id: Date.now(),
+          type: 'assistant',
+          content: `❌ Sorry, I encountered an error while processing your PDF: ${errorContext.message}\n\nError Type: ${errorContext.type}\n\nPlease make sure the PDF contains readable text and try again.`,
+          timestamp: new Date(),
+          errorContext
+        };
+        setMessages(prev => [...prev, errorMessage]);
+
+        // Show error notification with enhanced context
+        dispatch({
+          type: ActionType.SET_NOTIFICATION,
+          payload: {
+            message: `Failed to process PDF: ${error.message}`,
+            type: 'error'
+          }
+        });
+      } finally {
+        setPdfProcessing({
+          isProcessing: false,
+          stage: '',
+          progress: 0,
+          currentPage: 0,
+          totalPages: 0,
+          recipesFound: 0
+        });
+        setShowPDFUpload(false);
+      }
+    };
+
+    // Wrap PDF processing with error boundary
+    try {
+      await processWithBoundary();
+    } catch (boundaryError) {
+      console.error('PDF Processing Error Boundary caught:', boundaryError);
+      dispatch({
+        type: ActionType.SET_NOTIFICATION,
+        payload: {
+          message: 'PDF processing failed due to a system error. Please try again.',
+          type: 'error'
+        }
+      });
     }
   }, [isConfigured, dispatch]);
 
@@ -191,12 +214,24 @@ const AIAssistant = memo(() => {
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('AI Assistant error:', error);
-      
+
+      // Enhanced error context preservation
+      const errorContext = {
+        type: error.name || 'AIProcessingError',
+        message: error.message || 'Unknown AI processing error',
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        inputLength: inputMessage?.length || 0,
+        isConfigured,
+        hasApiKey: !!geminiApiKey
+      };
+
       const errorMessage = {
         id: Date.now() + 1,
         type: 'error',
-        content: 'Sorry, I encountered an error while processing your request. Please try again.',
-        timestamp: new Date()
+        content: `Sorry, I encountered an error while processing your request: ${errorContext.message}\n\nError Type: ${errorContext.type}\n\nPlease try again.`,
+        timestamp: new Date(),
+        errorContext
       };
 
       setMessages(prev => [...prev, errorMessage]);
@@ -289,7 +324,7 @@ const AIAssistant = memo(() => {
             Get personalized cocktail recommendations and recipe suggestions
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             onClick={() => setShowApiKeyModal(true)}
@@ -297,6 +332,15 @@ const AIAssistant = memo(() => {
             ariaLabel="API settings"
           >
             <Settings className="w-4 h-4" />
+          </Button>
+          <Button
+            onClick={() => setShowKeyRotationModal(true)}
+            variant="ghost"
+            disabled={!isConfigured}
+            ariaLabel="Rotate API key"
+            title="Rotate API key for enhanced security"
+          >
+            <RefreshCw className="w-4 h-4" />
           </Button>
           <Button
             onClick={() => setShowPDFUpload(!showPDFUpload)}
@@ -334,11 +378,10 @@ const AIAssistant = memo(() => {
 
           {!pdfProcessing.isProcessing ? (
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive
-                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-amber-400'
-              }`}
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                : 'border-gray-300 dark:border-gray-600 hover:border-amber-400'
+                }`}
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
@@ -415,7 +458,7 @@ const AIAssistant = memo(() => {
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Ask me anything about cocktails, recipes, or get personalized recommendations.
               </p>
-              
+
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Try these suggestions:
@@ -443,7 +486,7 @@ const AIAssistant = memo(() => {
               />
             ))
           )}
-          
+
           {isLoading && (
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
@@ -459,7 +502,7 @@ const AIAssistant = memo(() => {
               </div>
             </div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -493,6 +536,10 @@ const AIAssistant = memo(() => {
       {showApiKeyModal && (
         <ApiKeyModal onClose={() => setShowApiKeyModal(false)} />
       )}
+
+      {showKeyRotationModal && (
+        <KeyRotationModal onClose={() => setShowKeyRotationModal(false)} />
+      )}
     </div>
   );
 });
@@ -506,13 +553,12 @@ const MessageBubble = memo(({ message, onCopy, copiedMessageId }) => {
 
   return (
     <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-        isUser 
-          ? 'bg-blue-500' 
-          : isError 
-            ? 'bg-red-500' 
-            : 'bg-amber-500'
-      }`}>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isUser
+        ? 'bg-blue-500'
+        : isError
+          ? 'bg-red-500'
+          : 'bg-amber-500'
+        }`}>
         {isUser ? (
           <User className="w-4 h-4 text-white" />
         ) : isError ? (
@@ -521,27 +567,25 @@ const MessageBubble = memo(({ message, onCopy, copiedMessageId }) => {
           <Bot className="w-4 h-4 text-white" />
         )}
       </div>
-      
+
       <div className={`flex-1 max-w-[80%] ${isUser ? 'text-right' : ''}`}>
-        <div className={`rounded-lg p-3 ${
-          isUser 
-            ? 'bg-blue-500 text-white' 
-            : isError 
-              ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800' 
-              : 'bg-gray-100 dark:bg-gray-700'
-        }`}>
-          <div className={`whitespace-pre-wrap ${
-            isError ? 'text-red-700 dark:text-red-300' : ''
+        <div className={`rounded-lg p-3 ${isUser
+          ? 'bg-blue-500 text-white'
+          : isError
+            ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+            : 'bg-gray-100 dark:bg-gray-700'
           }`}>
+          <div className={`whitespace-pre-wrap ${isError ? 'text-red-700 dark:text-red-300' : ''
+            }`}>
             {message.content}
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2 mt-1">
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {message.timestamp.toLocaleTimeString()}
           </span>
-          
+
           {!isUser && (
             <Button
               onClick={() => onCopy(message.id, message.content)}
@@ -571,27 +615,31 @@ const ApiKeyModal = memo(({ onClose }) => {
   const [apiKey, setApiKey] = useState(state.geminiApiKey || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get key source information
+  const keySource = geminiService.getKeySource();
+
   const handleSave = useCallback(async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Test the API key
+      // Test the API key if provided
       if (apiKey.trim()) {
         await geminiService.testApiKey(apiKey.trim());
       }
 
+      // Store API key securely
+      if (apiKey.trim()) {
+        apiKeyService.setApiKey('gemini', apiKey.trim());
+      } else {
+        apiKeyService.removeApiKey('gemini');
+      }
+
+      // Update the app state
       dispatch({
         type: ActionType.SET_GEMINI_API_KEY,
         payload: apiKey.trim()
       });
-
-      // Save to localStorage
-      if (apiKey.trim()) {
-        localStorage.setItem('gemini-api-key', apiKey.trim());
-      } else {
-        localStorage.removeItem('gemini-api-key');
-      }
 
       dispatch({
         type: ActionType.SET_NOTIFICATION,
@@ -617,13 +665,22 @@ const ApiKeyModal = memo(({ onClose }) => {
   }, [apiKey, dispatch, onClose]);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="api-key-modal-title"
+      tabIndex={-1}
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="api-key-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Configure Gemini API Key
           </h2>
           <Button
@@ -637,6 +694,40 @@ const ApiKeyModal = memo(({ onClose }) => {
         </div>
 
         <form onSubmit={handleSave} className="p-6 space-y-4">
+          {/* Security Information */}
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+                  Secure API Key Storage
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                  Your API key is now stored securely in memory only, not in localStorage.
+                  This prevents XSS attacks from accessing your sensitive credentials.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Source Information */}
+          {keySource.hasEnvironmentKey && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Settings className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    Environment Variable Detected
+                  </h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    API key is loaded from VITE_GEMINI_API_KEY environment variable.
+                    This is the most secure method.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <Input
               label="Gemini API Key"
@@ -645,17 +736,23 @@ const ApiKeyModal = memo(({ onClose }) => {
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter your Gemini API key"
               maxLength={200}
+              disabled={keySource.hasEnvironmentKey}
             />
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Get your API key from{' '}
-              <a 
-                href="https://makersuite.google.com/app/apikey" 
-                target="_blank" 
+              <a
+                href="https://makersuite.google.com/app/apikey"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-700 underline"
               >
                 Google AI Studio
               </a>
+              {keySource.hasEnvironmentKey && (
+                <span className="block text-amber-600 dark:text-amber-400 mt-1">
+                  Environment variable is active - manual input disabled for security.
+                </span>
+              )}
             </p>
           </div>
 

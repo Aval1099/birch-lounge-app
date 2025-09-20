@@ -1,5 +1,5 @@
-import React, { memo } from 'react';
 import { Save, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { memo } from 'react';
 
 /**
  * Autosave Status Indicator Component

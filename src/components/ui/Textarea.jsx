@@ -1,21 +1,22 @@
-import React, { memo } from 'react';
-import { useApp } from '../../context/AppContext';
+import { memo } from 'react';
+
+import { useApp } from '../../hooks/useApp';
 
 /**
  * Reusable Textarea component with theme support and accessibility features
  */
-const Textarea = memo(({ 
-  label, 
-  className = '', 
-  id, 
-  name, 
+const Textarea = memo(({
+  label,
+  className = '',
+  id,
+  name,
   error,
   helperText,
   required = false,
   rows = 4,
   maxLength,
   showCharCount = false,
-  ...props 
+  ...props
 }) => {
   const { state } = useApp();
   const theme = state.theme;
@@ -24,13 +25,13 @@ const Textarea = memo(({
   const textareaId = id || `textarea-${name || Math.random().toString(36).substr(2, 9)}`;
 
   // Theme-based styles
-  const themeStyles = theme === 'dark' 
-    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+  const themeStyles = theme === 'dark'
+    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500';
 
   // Error styles
-  const errorStyles = error 
-    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+  const errorStyles = error
+    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
     : 'focus:border-amber-500 focus:ring-amber-500';
 
   // Base textarea styles
@@ -51,11 +52,10 @@ const Textarea = memo(({
   return (
     <div className="w-full">
       {label && (
-        <label 
-          htmlFor={textareaId} 
-          className={`block text-sm font-medium mb-1 ${
-            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-          }`}
+        <label
+          htmlFor={textareaId}
+          className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
         >
           {label}
           {required && (
@@ -65,7 +65,7 @@ const Textarea = memo(({
           )}
         </label>
       )}
-      
+
       <textarea
         id={textareaId}
         name={name}
@@ -74,9 +74,9 @@ const Textarea = memo(({
         className={textareaStyles}
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={
-          error ? `${textareaId}-error` : 
-          helperText ? `${textareaId}-helper` : 
-          undefined
+          error ? `${textareaId}-error` :
+            helperText ? `${textareaId}-helper` :
+              undefined
         }
         {...props}
       />
@@ -85,7 +85,7 @@ const Textarea = memo(({
       <div className="mt-1 flex justify-between items-start">
         <div className="flex-1">
           {error && (
-            <p 
+            <p
               id={`${textareaId}-error`}
               className="text-sm text-red-600 dark:text-red-400"
               role="alert"
@@ -95,11 +95,10 @@ const Textarea = memo(({
           )}
 
           {helperText && !error && (
-            <p 
+            <p
               id={`${textareaId}-helper`}
-              className={`text-sm ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-              }`}
+              className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                }`}
             >
               {helperText}
             </p>
@@ -108,16 +107,15 @@ const Textarea = memo(({
 
         {(showCharCount || maxLength) && (
           <div className="ml-2 flex-shrink-0">
-            <span 
-              className={`text-xs ${
-                isOverLimit 
-                  ? 'text-red-500' 
-                  : isNearLimit 
-                    ? 'text-yellow-500' 
-                    : theme === 'dark' 
-                      ? 'text-gray-400' 
+            <span
+              className={`text-xs ${isOverLimit
+                  ? 'text-red-500'
+                  : isNearLimit
+                    ? 'text-yellow-500'
+                    : theme === 'dark'
+                      ? 'text-gray-400'
                       : 'text-gray-500'
-              }`}
+                }`}
               aria-label={`Character count: ${currentLength}${maxLength ? ` of ${maxLength}` : ''}`}
             >
               {currentLength}

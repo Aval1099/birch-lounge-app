@@ -1,13 +1,14 @@
-import React, { memo, useState, useCallback, useMemo } from 'react';
-import { 
-  Calculator, Save, Trash2, FileText, Plus, Minus, 
-  X, DollarSign, Clock, Users 
-} from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { useSelectors } from '../../hooks';
+/* eslint-disable unused-imports/no-unused-imports */
+import { Calculator, Clock, DollarSign, FileText, Minus, Plus, Save, Trash2, Users, X } from 'lucide-react';
+import { memo, useCallback, useMemo, useState } from 'react';
+
 import { ActionType } from '../../constants';
-import { Button, Input, Select } from '../ui';
+import { useSelectors } from '../../hooks';
+import { useApp } from '../../hooks/useApp';
 import { formatCurrency, generateId, safeParseInt } from '../../utils';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
 
 /**
  * Batch Scaling Calculator Component - Recipe scaling functionality with serving calculations
@@ -101,7 +102,7 @@ const BatchScalingCalculator = memo(() => {
             Scale recipes for large batches and events
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             onClick={handleLoadBatch}
@@ -128,7 +129,7 @@ const BatchScalingCalculator = memo(() => {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Recipe Selection
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
             label="Select Recipe"
@@ -193,7 +194,7 @@ const BatchScalingCalculator = memo(() => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Batch Scaling
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Servings Control */}
               <div>
@@ -210,7 +211,7 @@ const BatchScalingCalculator = memo(() => {
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
-                  
+
                   <Input
                     type="number"
                     min="1"
@@ -220,7 +221,7 @@ const BatchScalingCalculator = memo(() => {
                     className="w-24 text-center"
                     aria-label="Number of servings"
                   />
-                  
+
                   <Button
                     onClick={() => handleServingsChange(batchScaling.servings + 1)}
                     variant="ghost"
@@ -230,7 +231,7 @@ const BatchScalingCalculator = memo(() => {
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-                
+
                 <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                   Scale factor: {(batchScaling.servings / (batchScaling.recipe.yields || 1)).toFixed(2)}x
                 </div>
@@ -263,7 +264,7 @@ const BatchScalingCalculator = memo(() => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Batch Statistics
             </h2>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <Users className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -272,7 +273,7 @@ const BatchScalingCalculator = memo(() => {
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Servings</p>
               </div>
-              
+
               <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -280,7 +281,7 @@ const BatchScalingCalculator = memo(() => {
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Cost</p>
               </div>
-              
+
               <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                 <DollarSign className="w-8 h-8 text-purple-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -288,7 +289,7 @@ const BatchScalingCalculator = memo(() => {
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Cost per Serving</p>
               </div>
-              
+
               <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                 <Clock className="w-8 h-8 text-amber-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -315,7 +316,7 @@ const BatchScalingCalculator = memo(() => {
                 Print
               </Button>
             </div>
-            
+
             <div className="p-6">
               <div className="space-y-3">
                 {scaledIngredients.map((ingredient, index) => (
@@ -366,7 +367,7 @@ const BatchScalingCalculator = memo(() => {
           onClose={() => setShowSaveModal(false)}
         />
       )}
-      
+
       {showLoadModal && (
         <LoadBatchModal
           savedBatches={savedBatches}
@@ -390,7 +391,7 @@ const SaveBatchModal = memo(({ batchScaling, onClose }) => {
     if (!batchName.trim()) return;
 
     setIsSubmitting(true);
-    
+
     try {
       const batchToSave = {
         id: generateId('batch'),
@@ -422,13 +423,22 @@ const SaveBatchModal = memo(({ batchScaling, onClose }) => {
   }, [batchName, batchScaling, dispatch, onClose]);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-batch-modal-title"
+      tabIndex={-1}
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="save-batch-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Save Batch
           </h2>
           <Button
@@ -514,13 +524,22 @@ const LoadBatchModal = memo(({ savedBatches, onClose }) => {
   }, [dispatch]);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="load-batch-modal-title"
+      tabIndex={-1}
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="load-batch-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Load Saved Batch
           </h2>
           <Button
@@ -553,11 +572,11 @@ const LoadBatchModal = memo(({ savedBatches, onClose }) => {
                       {batch.name}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {batch.recipe.name} • {batch.servings} servings • 
+                      {batch.recipe.name} • {batch.servings} servings •
                       Created {new Date(batch.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={() => handleLoadBatch(batch)}

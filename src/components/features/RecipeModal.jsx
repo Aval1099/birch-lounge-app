@@ -1,11 +1,10 @@
-import React, { memo, useState, useCallback, useEffect } from 'react';
-import { X, Plus, Trash2, Save, AlertCircle, Clock } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { ActionType, INGREDIENT_CATEGORIES_FLAT, FLAVOR_PROFILES, DIFFICULTY_LEVELS, UNITS } from '../../constants';
-import { Button, Input, Select, Textarea, DetailedAutosaveIndicator, CompactAutosaveIndicator } from '../ui';
+import { memo, useCallback, useEffect, useState } from 'react';
+
+import { ActionType, DIFFICULTY_LEVELS, FLAVOR_PROFILES, INGREDIENT_CATEGORIES_FLAT, UNITS } from '../../constants';
+import { useRecipeAutosave } from '../../hooks';
+import { useApp } from '../../hooks/useApp';
 import { createRecipe, validateRecipe } from '../../models';
 import { generateId } from '../../utils';
-import { useRecipeAutosave } from '../../hooks';
 
 /**
  * Recipe Modal Component - Create/Edit Recipe Form
@@ -84,7 +83,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
       ...prev,
       [field]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
@@ -98,7 +97,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
   const handleIngredientChange = useCallback((index, field, value) => {
     setFormData(prev => ({
       ...prev,
-      ingredients: prev.ingredients.map((ing, i) => 
+      ingredients: prev.ingredients.map((ing, i) =>
         i === index ? { ...ing, [field]: value } : ing
       )
     }));
@@ -108,11 +107,11 @@ const RecipeModal = memo(({ recipe, onClose }) => {
   const handleAddIngredient = useCallback(() => {
     setFormData(prev => ({
       ...prev,
-      ingredients: [...prev.ingredients, { 
-        id: generateId('ing'), 
-        name: '', 
-        amount: '', 
-        unit: 'oz' 
+      ingredients: [...prev.ingredients, {
+        id: generateId('ing'),
+        name: '',
+        amount: '',
+        unit: 'oz'
       }]
     }));
   }, []);
@@ -153,6 +152,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
           else if (error.includes('instructions')) fieldErrors.instructions = error;
         });
         setErrors(fieldErrors);
+        setIsSubmitting(false);
         return;
       }
 
@@ -227,17 +227,27 @@ const RecipeModal = memo(({ recipe, onClose }) => {
   }, [handleClose]);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && handleClose()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          handleClose();
+        }
+      }}
+      tabIndex={-1}
     >
-      <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden ${
-        theme === 'dark' ? 'border border-gray-700' : ''
-      }`}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recipe-modal-title"
+        className={`bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden ${theme === 'dark' ? 'border border-gray-700' : ''
+          }`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h2 id="recipe-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
               {isEditing ? 'Edit Recipe' : 'Create New Recipe'}
             </h2>
             <CompactAutosaveIndicator
@@ -272,7 +282,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                 placeholder="e.g., Old Fashioned"
                 maxLength={100}
               />
-              
+
               <Input
                 label="Version"
                 value={formData.version}
@@ -341,11 +351,10 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                     key={flavor}
                     type="button"
                     onClick={() => handleFlavorProfileToggle(flavor)}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                      formData.flavorProfile.includes(flavor)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${formData.flavorProfile.includes(flavor)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      }`}
                   >
                     {flavor}
                   </button>
@@ -370,7 +379,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                   Add Ingredient
                 </Button>
               </div>
-              
+
               {errors.ingredients && (
                 <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -421,7 +430,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                           onClick={() => handleRemoveIngredient(index)}
                           variant="ghost"
                           className="p-2 text-red-600 hover:text-red-700"
-                          ariaLabel="Remove ingredient"
+                          aria-label="Remove ingredient"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -454,7 +463,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                 placeholder="e.g., Coupe, Rocks Glass"
                 maxLength={50}
               />
-              
+
               <Input
                 label="Garnish"
                 value={formData.garnish}
@@ -472,7 +481,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                 value={formData.prepTime}
                 onChange={(e) => handleFieldChange('prepTime', parseInt(e.target.value) || 0)}
               />
-              
+
               <Select
                 label="Difficulty"
                 value={formData.difficulty}
@@ -484,7 +493,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                   </option>
                 ))}
               </Select>
-              
+
               <Input
                 label="Yields (servings)"
                 type="number"

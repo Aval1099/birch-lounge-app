@@ -2,7 +2,7 @@
 // DEBOUNCE HOOK
 // =============================================================================
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Hook to debounce a value
@@ -44,7 +44,7 @@ export const useDebouncedCallback = (callback, delay, deps = []) => {
     timeoutRef.current = setTimeout(() => {
       callback(...args);
     }, delay);
-  }, [callback, delay, deps]);
+  }, [callback, delay, ...deps]);
 
   // Cleanup on unmount
   useEffect(() => {

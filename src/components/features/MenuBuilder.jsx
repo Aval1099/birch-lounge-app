@@ -1,13 +1,17 @@
-import React, { memo, useState, useCallback, useMemo } from 'react';
-import {
-  Plus, FileText, Save, Trash2, Edit3, GripVertical,
-  X, Clock, DollarSign, Printer, Copy, Search, Filter
-} from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { useSelectors, useDebouncedSearch } from '../../hooks';
+
+/* eslint-disable unused-imports/no-unused-imports */
+import { Clock, DollarSign, FileText, Plus, Printer, Save, Search, Trash2, X } from 'lucide-react';
+import { memo, useCallback, useMemo, useState } from 'react';
+
 import { ActionType } from '../../constants';
-import { Button, Input, Select } from '../ui';
-import { generateId, formatCurrency } from '../../utils';
+import { useDebouncedSearch, useSelectors } from '../../hooks';
+import { useApp } from '../../hooks/useApp';
+import { formatCurrency, generateId } from '../../utils';
+import Button from '../ui/Button';
+import Card from '../ui/Card';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
+import { MenuSkeleton } from '../ui/SkeletonLoader';
 
 /**
  * Menu Builder Component - Menu creation, editing, and management interface
@@ -36,11 +40,11 @@ const MenuBuilder = memo(() => {
       return { totalCost: 0, avgCost: 0, totalTime: 0, avgTime: 0 };
     }
 
-    const totalCost = currentMenu.items.reduce((sum, recipe) => 
+    const totalCost = currentMenu.items.reduce((sum, recipe) =>
       sum + calculateRecipeCost(recipe.ingredients), 0
     );
-    
-    const totalTime = currentMenu.items.reduce((sum, recipe) => 
+
+    const totalTime = currentMenu.items.reduce((sum, recipe) =>
       sum + (recipe.prepTime || 0), 0
     );
 
@@ -147,6 +151,11 @@ const MenuBuilder = memo(() => {
     return ['All', ...categories.sort()];
   }, [selectRecipeGroups]);
 
+  // Show skeleton loading during app initialization
+  if (!state.isInitialized) {
+    return <MenuSkeleton />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -159,7 +168,7 @@ const MenuBuilder = memo(() => {
             Create and manage cocktail menus for your establishment
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             onClick={handleLoadMenu}
@@ -247,7 +256,7 @@ const MenuBuilder = memo(() => {
               Menu Items ({currentMenu.items.length})
             </h3>
           </div>
-          
+
           <div className="p-4">
             {currentMenu.items.length === 0 ? (
               <div className="text-center py-8">
@@ -259,15 +268,26 @@ const MenuBuilder = memo(() => {
             ) : (
               <div className="space-y-3">
                 {currentMenu.items.map((recipe, index) => (
-                  <MenuItemCard
-                    key={recipe.id}
-                    recipe={recipe}
-                    index={index}
-                    onRemove={handleRemoveFromMenu}
-                    onReorder={handleReorderItems}
-                    menuItems={currentMenu.items}
-                    calculateRecipeCost={calculateRecipeCost}
-                  />
+                  <Card key={recipe.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                          {recipe.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {formatCurrency(calculateRecipeCost(recipe))}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => handleRemoveFromMenu(recipe.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </Card>
                 ))}
               </div>
             )}
@@ -357,7 +377,7 @@ const MenuBuilder = memo(() => {
               </Select>
             </div>
           </div>
-          
+
           <div className="p-4 max-h-96 overflow-y-auto">
             {availableRecipes.length === 0 ? (
               <div className="text-center py-8">
@@ -427,57 +447,13 @@ const MenuBuilder = memo(() => {
           onClose={() => setShowSaveModal(false)}
         />
       )}
-      
+
       {showLoadModal && (
         <LoadMenuModal
           savedMenus={savedMenus}
           onClose={() => setShowLoadModal(false)}
         />
       )}
-    </div>
-  );
-});
-
-/**
- * Menu Item Card Component
- */
-const MenuItemCard = memo(({ recipe, onRemove, calculateRecipeCost }) => {
-  const recipeCost = calculateRecipeCost(recipe.ingredients);
-
-  return (
-    <div className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
-      <div className="cursor-move text-gray-400">
-        <GripVertical className="w-4 h-4" />
-      </div>
-      
-      <div className="flex-1">
-        <h4 className="font-medium text-gray-900 dark:text-gray-100">
-          {recipe.name}
-        </h4>
-        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-          <span>{recipe.version}</span>
-          <div className="flex items-center gap-1">
-            <DollarSign className="w-3 h-3" />
-            {formatCurrency(recipeCost)}
-          </div>
-          {recipe.prepTime > 0 && (
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {recipe.prepTime}m
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <Button
-        onClick={() => onRemove(recipe.id)}
-        variant="ghost"
-        size="sm"
-        className="text-red-600 hover:text-red-700"
-        ariaLabel={`Remove ${recipe.name} from menu`}
-      >
-        <X className="w-4 h-4" />
-      </Button>
     </div>
   );
 });
@@ -495,7 +471,7 @@ const SaveMenuModal = memo(({ currentMenu, onClose }) => {
     if (!menuName.trim()) return;
 
     setIsSubmitting(true);
-    
+
     try {
       const menuToSave = {
         id: currentMenu.id || generateId('menu'),
@@ -526,14 +502,25 @@ const SaveMenuModal = memo(({ currentMenu, onClose }) => {
     }
   }, [menuName, currentMenu, dispatch, onClose]);
 
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-menu-title" // cspell:disable-line
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="save-menu-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Save Menu
           </h2>
           <Button
@@ -618,14 +605,25 @@ const LoadMenuModal = memo(({ savedMenus, onClose }) => {
     }
   }, [dispatch]);
 
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={handleKeyDown}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="load-menu-title" // cspell:disable-line
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="load-menu-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Load Saved Menu
           </h2>
           <Button
@@ -658,11 +656,11 @@ const LoadMenuModal = memo(({ savedMenus, onClose }) => {
                       {menu.name}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {menu.items.length} item{menu.items.length !== 1 ? 's' : ''} • 
+                      {menu.items.length} item{menu.items.length !== 1 ? 's' : ''} •
                       Created {new Date(menu.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={() => handleLoadMenu(menu)}
@@ -693,7 +691,6 @@ const LoadMenuModal = memo(({ savedMenus, onClose }) => {
 });
 
 MenuBuilder.displayName = 'MenuBuilder';
-MenuItemCard.displayName = 'MenuItemCard';
 SaveMenuModal.displayName = 'SaveMenuModal';
 LoadMenuModal.displayName = 'LoadMenuModal';
 

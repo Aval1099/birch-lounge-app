@@ -2,8 +2,8 @@
 // DATA MODELS & VALIDATION
 // =============================================================================
 
-import { generateId, safeParseFloat, safeParseInt, sanitizeInput } from '../utils';
 import { DIFFICULTY_LEVELS } from '../constants';
+import { generateId, safeParseFloat, safeParseInt, sanitizeInput } from '../utils';
 
 /**
  * Create a new ingredient with validation

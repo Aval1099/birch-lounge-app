@@ -1,0 +1,77 @@
+{
+  "recommendations": [
+    // AI Assistant
+    "augment.vscode-augment",
+    // Essential React Development
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-typescript-next",
+    // Debugging & Testing
+    "ms-vscode.js-debug",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    // Code Quality & Productivity
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag",
+    "ms-vscode.vscode-json",
+    // Git & Version Control
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+    // React Specific
+    "dsznajder.es7-react-js-snippets",
+    "burkeholland.simple-react-snippets",
+    "ms-vscode.vscode-react-native",
+    // Performance & Bundle Analysis
+    "ms-vscode.vscode-bundle-analyzer",
+    // Accessibility Testing
+    "deque-systems.axe-linter",
+    // Mobile & Touch Development
+    "ms-vscode.vscode-edge-devtools",
+    // Advanced React Development
+    "gruntfuggly.todo-tree",
+    "steoates.autoimport-es6-ts",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-typescript-next",
+    // Code Quality & Analysis
+    "sonarsource.sonarlint-vscode",
+    "ms-vscode.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens",
+    // Performance & Bundle Analysis
+    "ms-vscode.vscode-bundle-analyzer",
+    "ms-vscode.js-debug-nightly",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "hbenl.vscode-test-explorer",
+    // Productivity Tools
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag",
+    "ms-vscode.vscode-json",
+    "redhat.vscode-yaml",
+    "ms-vscode.hexeditor",
+    // Git & Version Control Enhanced
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+    "github.copilot",
+    "github.copilot-chat",
+    // Mobile & Touch Development
+    "ms-vscode.vscode-edge-devtools",
+    "ms-vscode.live-server",
+    "ritwickdey.liveserver",
+    // Storybook Integration
+    "chromatic.vscode-storybook",
+    // Utilities
+    "ms-vscode.vscode-thunder-client",
+    "humao.rest-client",
+    "ms-vscode.vscode-npm-script",
+    "sixth.glyde"
+  ],
+  "unwantedRecommendations": [
+    "ms-vscode.vscode-typescript",
+    "hookyqr.beautify"
+  ]
+}

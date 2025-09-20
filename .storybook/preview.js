@@ -10,35 +10,59 @@ const preview = {
         date: /Date$/,
       },
     },
+    // Accessibility addon configuration
+    a11y: {
+      element: '#storybook-root',
+      config: {},
+      options: {},
+      manual: true,
+    },
+    // Viewport addon configuration
+    viewport: {
+      viewports: {
+        mobile: {
+          name: 'Mobile',
+          styles: {
+            width: '375px',
+            height: '667px',
+          },
+        },
+        tablet: {
+          name: 'Tablet',
+          styles: {
+            width: '768px',
+            height: '1024px',
+          },
+        },
+        desktop: {
+          name: 'Desktop',
+          styles: {
+            width: '1024px',
+            height: '768px',
+          },
+        },
+        largeDesktop: {
+          name: 'Large Desktop',
+          styles: {
+            width: '1440px',
+            height: '900px',
+          },
+        },
+      },
+    },
+    // Docs configuration
     docs: {
       toc: true,
     },
-    backgrounds: {
-      default: 'light',
-      values: [
-        {
-          name: 'light',
-          value: '#ffffff',
-        },
-        {
-          name: 'dark',
-          value: '#1f2937',
-        },
-      ],
-    },
   },
-  globalTypes: {
-    theme: {
-      description: 'Global theme for components',
-      defaultValue: 'light',
-      toolbar: {
-        title: 'Theme',
-        icon: 'circlehollow',
-        items: ['light', 'dark'],
-        dynamicTitle: true,
-      },
-    },
-  },
+  // Global decorators
+  decorators: [
+    (Story) => (
+      <div className="p-4">
+        <Story />
+      </div>
+    ),
+  ],
 };
 
 export default preview;

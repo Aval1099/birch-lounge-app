@@ -1,12 +1,9 @@
-import React, { memo, useState, useCallback, useMemo } from 'react';
-import {
-  Search, Clock, DollarSign, Star, Heart, X,
-  Zap, ChefHat, Filter, SortAsc, Eye, Gauge, Target
-} from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { useSelectors, useAdvancedSearch } from '../../hooks';
+
+import { memo, useCallback, useMemo, useState } from 'react';
+
 import { ActionType } from '../../constants';
-import { Button, Input, Select, Badge } from '../ui';
+import { useAdvancedSearch, useSelectors } from '../../hooks';
+import { useApp } from '../../hooks/useApp';
 import { formatCurrency } from '../../utils';
 
 /**
@@ -343,9 +340,8 @@ const RecipeListItem = memo(({ recipe, isSelected, onClick, calculateRecipeCost 
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 border-b border-gray-700 hover:bg-gray-800 transition-colors ${
-        isSelected ? 'bg-gray-800 border-l-4 border-l-amber-500' : ''
-      }`}
+      className={`w-full text-left p-4 border-b border-gray-700 hover:bg-gray-800 transition-colors ${isSelected ? 'bg-gray-800 border-l-4 border-l-amber-500' : ''
+        }`}
     >
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-medium text-white truncate">{recipe.name}</h3>
@@ -361,7 +357,7 @@ const RecipeListItem = memo(({ recipe, isSelected, onClick, calculateRecipeCost 
           )}
         </div>
       </div>
-      
+
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-400">{recipe.version}</span>
         <div className="flex items-center gap-1 text-green-400">
@@ -369,7 +365,7 @@ const RecipeListItem = memo(({ recipe, isSelected, onClick, calculateRecipeCost 
           {formatCurrency(recipeCost)}
         </div>
       </div>
-      
+
       <div className="mt-1">
         <span className="inline-block px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded">
           {recipe.category}
@@ -400,7 +396,7 @@ const RecipeDetail = memo(({ recipe, onClose, calculateRecipeCost }) => {
             <X className="w-5 h-5" />
           </Button>
         </div>
-        
+
         <div className="flex items-center gap-4 text-sm text-gray-400">
           <span>{recipe.version}</span>
           <span>{recipe.category}</span>
@@ -457,7 +453,7 @@ const RecipeDetail = memo(({ recipe, onClose, calculateRecipeCost }) => {
               <p className="text-white">{recipe.glassware}</p>
             </div>
           )}
-          
+
           {recipe.garnish && (
             <div>
               <h4 className="text-sm font-medium text-gray-400 mb-1">Garnish</h4>

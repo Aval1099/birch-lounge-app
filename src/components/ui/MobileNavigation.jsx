@@ -2,15 +2,16 @@
 // MOBILE NAVIGATION COMPONENT
 // =============================================================================
 
-import React, { memo, useState, useEffect } from 'react';
-import { 
-  ChefHat, Package, FileText, Calculator, 
-  Zap, Settings, Menu, X, ChevronLeft, ChevronRight 
-} from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+/* eslint-disable unused-imports/no-unused-imports */
+import { ChefHat, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { memo, useEffect, useState } from 'react';
+
 import { ActionType } from '../../constants';
 import { useMobileDetection, useSwipeGesture } from '../../hooks';
-import { Button } from './';
+import { useApp } from '../../hooks/useApp';
+
+import Button from './Button';
+
 
 /**
  * Mobile-optimized navigation component with swipe gestures
@@ -78,7 +79,7 @@ const MobileNavigation = memo(({ tabs = [] }) => {
                 </p>
               </div>
             </div>
-            
+
             <Button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               variant="ghost"
@@ -97,14 +98,28 @@ const MobileNavigation = memo(({ tabs = [] }) => {
 
         {/* Mobile Menu Overlay */}
         {isMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMenuOpen(false)}>
-            <div 
+          <div
+            className="fixed inset-0 z-50 bg-black bg-opacity-50"
+            onClick={() => setIsMenuOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                setIsMenuOpen(false);
+              }
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-nav-title"
+            tabIndex={-1}
+          >
+            <div
               className="bg-white dark:bg-gray-800 w-80 h-full shadow-xl"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              role="navigation"
             >
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h2 id="mobile-nav-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     Navigation
                   </h2>
                   <Button
@@ -118,22 +133,21 @@ const MobileNavigation = memo(({ tabs = [] }) => {
                   </Button>
                 </div>
               </div>
-              
+
               <nav className="p-4">
                 <div className="space-y-2">
                   {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
-                    
+
                     return (
                       <button
                         key={tab.id}
                         onClick={() => handleTabChange(tab.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors min-h-[48px] ${
-                          isActive
-                            ? 'bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors min-h-[48px] ${isActive
+                          ? 'bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                          }`}
                         aria-label={`Switch to ${tab.label} tab`}
                       >
                         <Icon className="w-5 h-5 flex-shrink-0" />
@@ -151,13 +165,13 @@ const MobileNavigation = memo(({ tabs = [] }) => {
         )}
 
         {/* Swipe Area for Tab Navigation */}
-        <div 
+        <div
           className="h-2 bg-gray-100 dark:bg-gray-800 relative"
           {...swipeHandlers}
         >
           {/* Tab Indicator */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700">
-            <div 
+            <div
               className="h-full bg-amber-600 transition-all duration-300"
               style={{
                 width: `${100 / tabs.length}%`,
@@ -165,7 +179,7 @@ const MobileNavigation = memo(({ tabs = [] }) => {
               }}
             />
           </div>
-          
+
           {/* Navigation Arrows */}
           {currentTabIndex > 0 && (
             <button
@@ -179,7 +193,7 @@ const MobileNavigation = memo(({ tabs = [] }) => {
               <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             </button>
           )}
-          
+
           {currentTabIndex < tabs.length - 1 && (
             <button
               onClick={() => {
@@ -205,16 +219,15 @@ const MobileNavigation = memo(({ tabs = [] }) => {
           {tabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            
+
             return (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap min-h-[48px] ${
-                  isActive
-                    ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
+                className={`flex items-center gap-2 px-4 py-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap min-h-[48px] ${isActive
+                  ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
                 aria-label={`Switch to ${tab.label} tab`}
                 aria-current={isActive ? 'page' : undefined}
               >

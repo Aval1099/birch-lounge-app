@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useReducer, useEffect, useMemo } from 'react';
+import { createContext, useEffect, useMemo, useReducer } from 'react';
+
 import { ActionType } from '../constants';
-import { storageService } from '../services/storageService';
+import { apiKeyService } from '../services/apiKeyService';
+import { hybridStorageService } from '../services/hybridStorageService';
+import { isSupabaseConfigured, onAuthStateChange } from '../services/supabaseClient';
+
 import { appReducer, initialAppState } from './appReducer';
+
+
 
 // Create the context
 const AppContext = createContext(null);
@@ -10,37 +16,83 @@ const AppContext = createContext(null);
  * App Context Provider component
  * Manages global application state and provides it to child components
  */
-export const AppProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(appReducer, initialAppState);
+export const AppProvider = ({ children, initialState = null }) => {
+  const [state, dispatch] = useReducer(appReducer, initialState || initialAppState);
 
-  // Initialize app on mount
+  // Initialize hybrid storage and app on mount
   useEffect(() => {
-    dispatch({ type: ActionType.INITIALIZE_APP });
-    
-    // Load saved API key
-    const savedApiKey = localStorage.getItem('gemini-api-key');
-    if (savedApiKey) {
-      dispatch({ 
-        type: ActionType.SET_GEMINI_API_KEY, 
-        payload: savedApiKey 
-      });
-    }
+    const initializeApp = async () => {
+      // Initialize hybrid storage service
+      await hybridStorageService.init();
+
+      if (!initialState) {
+        // First, initialize with localStorage data for immediate UI
+        dispatch({ type: ActionType.INITIALIZE_APP });
+
+        // Then, load hybrid data (which may include cloud data)
+        try {
+          const hybridData = await hybridStorageService.load();
+          if (hybridData) {
+            dispatch({
+              type: ActionType.LOAD_HYBRID_DATA,
+              payload: { data: hybridData }
+            });
+          }
+        } catch (error) {
+          console.warn('Failed to load hybrid data:', error);
+        }
+      }
+
+      // Load API key securely using the API key service
+      const secureApiKey = apiKeyService.getApiKey('gemini');
+      if (secureApiKey) {
+        dispatch({
+          type: ActionType.SET_GEMINI_API_KEY,
+          payload: secureApiKey
+        });
+      }
+    };
+
+    initializeApp();
+  }, [initialState]);
+
+  // Listen for auth state changes (Supabase)
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
+    const unsubscribe = onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        console.log('User signed in, triggering sync...');
+        // Trigger sync when user signs in
+        await hybridStorageService.forceSync();
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        // Could clear sensitive data here if needed
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
-  // Auto-save state changes to localStorage
+  // Auto-save state changes using hybrid storage
   useEffect(() => {
-    if (state.isInitialized) {
-      const dataToSave = {
-        recipes: state.recipes,
-        ingredients: state.ingredients,
-        techniques: state.techniques,
-        theme: state.theme,
-        savedMenus: state.savedMenus,
-        savedBatches: state.savedBatches
-      };
-      
-      storageService.save(dataToSave);
-    }
+    const saveData = async () => {
+      if (state.isInitialized) {
+        const dataToSave = {
+          recipes: state.recipes,
+          ingredients: state.ingredients,
+          techniques: state.techniques,
+          theme: state.theme,
+          savedMenus: state.savedMenus,
+          savedBatches: state.savedBatches
+        };
+
+        // Use hybrid storage for automatic cloud sync
+        await hybridStorageService.save(dataToSave);
+      }
+    };
+
+    saveData();
   }, [
     state.recipes,
     state.ingredients,
@@ -64,18 +116,6 @@ export const AppProvider = ({ children }) => {
   );
 };
 
-/**
- * Hook to access the app context
- * @returns {Object} Context value with state and dispatch
- */
-export const useApp = () => {
-  const context = useContext(AppContext);
-  
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
-  
-  return context;
-};
+// Hook moved to src/hooks/useApp.js to avoid React Fast Refresh issues
 
 export default AppContext;

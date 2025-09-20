@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 /**
  * Badge Component - Small status indicators and labels

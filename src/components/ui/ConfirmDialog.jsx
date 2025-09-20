@@ -1,14 +1,16 @@
-import React, { memo } from 'react';
+/* eslint-disable unused-imports/no-unused-imports */
 import { AlertTriangle, X } from 'lucide-react';
+import { memo } from 'react';
+
 import Button from './Button';
 
 /**
  * Confirm Dialog Component - Better confirmation UX
  */
-const ConfirmDialog = memo(({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
+const ConfirmDialog = memo(({
+  isOpen,
+  onClose,
+  onConfirm,
   title = 'Confirm Action',
   message = 'Are you sure you want to proceed?',
   confirmText = 'Confirm',
@@ -45,16 +47,25 @@ const ConfirmDialog = memo(({
   const styles = getVariantStyles();
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && !isLoading && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && !isLoading) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-dialog-title"
+      tabIndex={-1}
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             {styles.icon}
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 id="confirm-dialog-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {title}
             </h2>
           </div>

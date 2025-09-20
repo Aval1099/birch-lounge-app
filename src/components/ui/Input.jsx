@@ -1,19 +1,20 @@
-import React, { memo, forwardRef } from 'react';
-import { useApp } from '../../context/AppContext';
+import { forwardRef, memo } from 'react';
+
+import { useApp } from '../../hooks/useApp';
 
 /**
  * Reusable Input component with theme support and accessibility features
  */
-const Input = memo(forwardRef(({ 
-  label, 
-  icon, 
-  className = '', 
-  id, 
-  name, 
+const Input = memo(forwardRef(({
+  label,
+  icon,
+  className = '',
+  id,
+  name,
   error,
   helperText,
   required = false,
-  ...props 
+  ...props
 }, ref) => {
   const { state } = useApp();
   const theme = state.theme;
@@ -22,13 +23,13 @@ const Input = memo(forwardRef(({
   const inputId = id || `input-${name || Math.random().toString(36).substr(2, 9)}`;
 
   // Theme-based styles
-  const themeStyles = theme === 'dark' 
-    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-amber-500' 
+  const themeStyles = theme === 'dark'
+    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-amber-500'
     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-amber-500';
 
   // Error styles
-  const errorStyles = error 
-    ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
+  const errorStyles = error
+    ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
     : 'focus:ring-amber-500';
 
   // Base input styles
@@ -45,11 +46,10 @@ const Input = memo(forwardRef(({
   return (
     <div className="w-full">
       {label && (
-        <label 
-          htmlFor={inputId} 
-          className={`block text-sm font-medium mb-1 ${
-            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-          }`}
+        <label
+          htmlFor={inputId}
+          className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+            }`}
         >
           {label}
           {required && (
@@ -59,17 +59,17 @@ const Input = memo(forwardRef(({
           )}
         </label>
       )}
-      
+
       <div className="relative">
         {icon && (
-          <div 
+          <div
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
             aria-hidden="true"
           >
             {icon}
           </div>
         )}
-        
+
         <input
           ref={ref}
           id={inputId}
@@ -77,16 +77,16 @@ const Input = memo(forwardRef(({
           className={inputStyles}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={
-            error ? `${inputId}-error` : 
-            helperText ? `${inputId}-helper` : 
-            undefined
+            error ? `${inputId}-error` :
+              helperText ? `${inputId}-helper` :
+                undefined
           }
           {...props}
         />
       </div>
 
       {error && (
-        <p 
+        <p
           id={`${inputId}-error`}
           className="mt-1 text-sm text-red-600 dark:text-red-400"
           role="alert"
@@ -96,11 +96,10 @@ const Input = memo(forwardRef(({
       )}
 
       {helperText && !error && (
-        <p 
+        <p
           id={`${inputId}-helper`}
-          className={`mt-1 text-sm ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-          }`}
+          className={`mt-1 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`}
         >
           {helperText}
         </p>

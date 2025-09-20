@@ -4,6 +4,8 @@
 
 import { APP_VERSION, STORAGE_KEY } from '../constants';
 
+import { validationService } from './validation';
+
 /**
  * Service for managing localStorage operations with error handling
  */
@@ -159,6 +161,88 @@ export const storageService = {
       return true;
     } catch (error) {
       console.error('Failed to export backup:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Export all application data with validation
+   * @returns {Object} Complete application data
+   */
+  exportData: () => {
+    try {
+      const data = storageService.load();
+      if (!data) {
+        return {
+          recipes: [],
+          ingredients: [],
+          menus: [],
+          batches: [],
+          techniques: [],
+          version: APP_VERSION,
+          lastSaved: Date.now()
+        };
+      }
+
+      return {
+        recipes: data.recipes || [],
+        ingredients: data.ingredients || [],
+        menus: data.menus || [],
+        batches: data.batches || [],
+        techniques: data.techniques || [],
+        version: data.version || APP_VERSION,
+        lastSaved: data.lastSaved || Date.now()
+      };
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      throw new Error('Data export failed');
+    }
+  },
+
+  /**
+   * Import data with comprehensive validation and security checks
+   * @param {Object} rawData - Raw data to import
+   * @returns {boolean} Success status
+   */
+  importData: (rawData) => {
+    try {
+      // Validate and sanitize the imported data
+      const validation = validationService.validateImportData(rawData);
+      
+      if (!validation.isValid) {
+        console.error('Import validation failed:', validation.errors);
+        throw new Error(`Import validation failed: ${validation.errors.join(', ')}`);
+      }
+
+      // Get current data to preserve any existing data not in import
+      const currentData = storageService.load() || {};
+      
+      // Merge validated data with current data
+      const mergedData = {
+        ...currentData,
+        ...validation.data,
+        version: APP_VERSION,
+        lastSaved: Date.now()
+      };
+
+      // Save the merged data
+      return storageService.save(mergedData);
+    } catch (error) {
+      console.error('Failed to import data:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Clear all application data
+   * @returns {boolean} Success status
+   */
+  clearAllData: () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      return true;
+    } catch (error) {
+      console.error('Failed to clear all data:', error);
       return false;
     }
   }

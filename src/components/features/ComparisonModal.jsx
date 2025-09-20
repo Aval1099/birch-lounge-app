@@ -1,9 +1,8 @@
-import React, { memo, useMemo } from 'react';
-import { X, GitCompare, Clock, Star, DollarSign, ChefHat } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { memo, useMemo } from 'react';
+
 import { ActionType } from '../../constants';
-import { Button, Badge } from '../ui';
 import { useSelectors } from '../../hooks';
+import { useApp } from '../../hooks/useApp';
 
 /**
  * Recipe Comparison Modal Component
@@ -54,7 +53,7 @@ const ComparisonModal = memo(() => {
     if (selectedRecipes.length > 1) {
       const firstRecipeIngredients = selectedRecipes[0].ingredients?.map(ing => ing.name.toLowerCase()) || [];
       metrics.commonIngredients = firstRecipeIngredients.filter(ingredient =>
-        selectedRecipes.every(recipe => 
+        selectedRecipes.every(recipe =>
           recipe.ingredients?.some(ing => ing.name.toLowerCase() === ingredient)
         )
       );
@@ -248,11 +247,10 @@ const RecipeComparisonCard = memo(({ recipe, cost, onRemove, commonIngredients }
             return (
               <div
                 key={index}
-                className={`text-sm p-2 rounded ${
-                  isCommon
+                className={`text-sm p-2 rounded ${isCommon
                     ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
                     : 'text-gray-600 dark:text-gray-400'
-                }`}
+                  }`}
               >
                 {ingredient.amount} {ingredient.unit} {ingredient.name}
                 {isCommon && (

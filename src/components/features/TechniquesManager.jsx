@@ -1,13 +1,20 @@
-import React, { memo, useState, useCallback, useMemo } from 'react';
 import {
-  BookOpen, Search, Filter, Plus, Edit3, Trash2, Clock,
-  Star, Tag, ChefHat, Zap, Eye, Video, FileText, ExternalLink,
-  Thermometer, Timer, Droplets, Scissors, Blend, Flame
+  Blend,
+  BookOpen,
+  ChefHat,
+  Droplets,
+  Flame,
+  Plus,
+  Scissors,
+  Star,
+  Thermometer, Timer,
+  Zap
 } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { useAdvancedSearch } from '../../hooks/useAdvancedSearch';
+import { memo, useCallback, useMemo, useState } from 'react';
+
 import { ActionType } from '../../constants';
-import { Button, Input, Select, Card, Badge } from '../ui';
+import { useAdvancedSearch } from '../../hooks/useAdvancedSearch';
+import { useApp } from '../../hooks/useApp';
 
 /**
  * Techniques Manager Component - Comprehensive bartending techniques library
@@ -173,13 +180,13 @@ const TechniquesManager = memo(() => {
               className="pr-20"
               aria-label="Search techniques"
             />
-            
+
             {isSearching && (
               <div className="absolute right-12 top-1/2 -translate-y-1/2">
                 <div className="animate-spin w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full" />
               </div>
             )}
-            
+
             {searchTerm && (
               <Button
                 onClick={clearSearch}
@@ -316,7 +323,7 @@ const TechniquesManager = memo(() => {
             {searchTerm ? 'No techniques found' : 'No techniques available'}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {searchTerm 
+            {searchTerm
               ? 'Try adjusting your search terms or filters'
               : 'Start building your techniques library by adding your first technique'
             }
@@ -348,9 +355,9 @@ const TechniquesManager = memo(() => {
  */
 const TechniqueCard = memo(({ technique, onSelect, getTechniqueIcon }) => {
   const IconComponent = getTechniqueIcon(technique.category);
-  
+
   return (
-    <Card 
+    <Card
       className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
       onClick={() => onSelect(technique)}
     >
@@ -368,7 +375,7 @@ const TechniqueCard = memo(({ technique, onSelect, getTechniqueIcon }) => {
             </p>
           </div>
         </div>
-        
+
         {technique.isFavorite && (
           <Star className="w-4 h-4 text-yellow-500 fill-current" />
         )}
@@ -388,7 +395,7 @@ const TechniqueCard = memo(({ technique, onSelect, getTechniqueIcon }) => {
             {technique.difficulty}
           </Badge>
         </div>
-        
+
         <div className="flex items-center gap-1">
           <Eye className="w-3 h-3" />
           View Details

@@ -3,10 +3,10 @@
 // =============================================================================
 
 import { ActionType, MAX_COMPARISON_ITEMS } from '../constants';
-import { storageService } from '../services/storageService';
-import { validateRecipe, createIngredient } from '../models';
-import { safeParseInt } from '../utils';
 import { getInitialIngredients, getInitialRecipes, getInitialTechniques } from '../data/initialData';
+import { validateRecipe, createIngredient } from '../models';
+import { storageService } from '../services/storageService';
+import { safeParseInt } from '../utils';
 
 // Initial application state
 export const initialAppState = {
@@ -60,7 +60,9 @@ export const initialAppState = {
 export const appReducer = (state, action) => {
   switch (action.type) {
     case ActionType.INITIALIZE_APP: {
-      const savedData = storageService.load();
+      // Note: We'll load data asynchronously in the AppProvider
+      // This action just sets up the initial state structure
+      const savedData = storageService.load(); // Fallback to localStorage for immediate load
       return {
         ...initialAppState,
         ...(savedData || {}),
@@ -68,6 +70,21 @@ export const appReducer = (state, action) => {
         ingredients: savedData?.ingredients || getInitialIngredients(),
         techniques: savedData?.techniques || getInitialTechniques(),
         savedBatches: savedData?.savedBatches || [],
+        isInitialized: true
+      };
+    }
+
+    case ActionType.LOAD_HYBRID_DATA: {
+      // Action to load data from hybrid storage (async)
+      const { data } = action.payload;
+      return {
+        ...state,
+        recipes: data?.recipes || state.recipes,
+        ingredients: data?.ingredients || state.ingredients,
+        techniques: data?.techniques || state.techniques,
+        savedMenus: data?.savedMenus || state.savedMenus,
+        savedBatches: data?.savedBatches || state.savedBatches,
+        theme: data?.theme || state.theme,
         isInitialized: true
       };
     }

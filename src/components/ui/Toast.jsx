@@ -1,7 +1,9 @@
-import React, { memo, useEffect, useState } from 'react';
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+/* eslint-disable unused-imports/no-unused-imports */
+import { AlertCircle, AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
+import { memo, useCallback, useEffect, useState } from 'react';
+
 import { ActionType } from '../../constants';
+import { useApp } from '../../hooks/useApp';
 
 /**
  * Toast Notification Component - Better user feedback
@@ -14,7 +16,7 @@ const Toast = memo(() => {
   useEffect(() => {
     if (notification.message) {
       setIsVisible(true);
-      
+
       // Auto-dismiss after 5 seconds
       const timer = setTimeout(() => {
         handleClose();
@@ -22,9 +24,9 @@ const Toast = memo(() => {
 
       return () => clearTimeout(timer);
     }
-  }, [notification.message]);
+  }, [notification.message, handleClose]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsVisible(false);
     setTimeout(() => {
       dispatch({
@@ -32,7 +34,7 @@ const Toast = memo(() => {
         payload: { message: null, type: null }
       });
     }, 300); // Wait for animation
-  };
+  }, [dispatch]);
 
   if (!notification.message) return null;
 
@@ -66,9 +68,8 @@ const Toast = memo(() => {
   return (
     <div className="fixed top-4 right-4 z-50">
       <div
-        className={`${getStyles()} rounded-lg p-4 max-w-sm transition-all duration-300 transform ${
-          isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-        }`}
+        className={`${getStyles()} rounded-lg p-4 max-w-sm transition-all duration-300 transform ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+          }`}
       >
         <div className="flex items-start gap-3">
           {getIcon()}

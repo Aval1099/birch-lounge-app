@@ -1,5 +1,9 @@
-@import "tailwindcss";
-@import "./styles/mobile.css";
+/* Tailwind directives - processed by PostCSS/Tailwind plugin (Tailwind v4+)
+  Use the new import paths for preflight and utilities. */
+@import 'tailwindcss/preflight';
+@import 'tailwindcss/utilities';
+
+@import './styles/mobile.css';
 
 body {
   background-color: #f3f4f6 !important;

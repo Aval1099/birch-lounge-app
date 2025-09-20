@@ -1,7 +1,6 @@
-import React from 'react';
 import { render } from '@testing-library/react';
-import { AppProvider } from '../../context/AppContext';
-import { ErrorBoundary } from '../../components/ui';
+
+
 
 // Custom render function that includes providers
 export const renderWithProviders = (ui, options = {}) => {
@@ -40,6 +39,7 @@ export const mockRecipe = {
   notes: 'Classic cocktail',
   yields: 1,
   isFavorite: false,
+  tags: ['classic', 'whiskey', 'stirred'],
   createdAt: Date.now(),
   updatedAt: Date.now()
 };
@@ -68,7 +68,7 @@ export const createMockEvent = (overrides = {}) => ({
   ...overrides
 });
 
-export const waitForLoadingToFinish = () => 
+export const waitForLoadingToFinish = () =>
   new Promise(resolve => setTimeout(resolve, 0));
 
 // Re-export everything from testing-library

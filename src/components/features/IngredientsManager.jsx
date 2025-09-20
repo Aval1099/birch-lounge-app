@@ -1,11 +1,16 @@
-import React, { memo, useState, useCallback, useMemo } from 'react';
-import { Plus, Search, Edit3, Trash2, Package, DollarSign, X, ShoppingCart, CheckSquare, Square, Wine, Beer, Zap } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { useSelectors, useDebouncedSearch } from '../../hooks';
-import { ActionType, INGREDIENT_CATEGORIES, INGREDIENT_CATEGORIES_FLAT, ORDERING_CATEGORIES, STOCK_STATUS } from '../../constants';
-import { Button, Input, Select } from '../ui';
+/* eslint-disable unused-imports/no-unused-imports */
+import { Beer, CheckSquare, Edit3, Package, Plus, Search, ShoppingCart, Square, Trash2, Wine, X, Zap } from 'lucide-react';
+import { memo, useCallback, useMemo, useState } from 'react';
+
+import { ActionType, INGREDIENT_CATEGORIES_FLAT } from '../../constants';
+import { useDebouncedSearch, useSelectors } from '../../hooks';
+import { useApp } from '../../hooks/useApp';
 import { createIngredient, validateIngredient } from '../../models';
 import { formatCurrency, generateId } from '../../utils';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
+import { IngredientSkeleton } from '../ui/SkeletonLoader';
 
 /**
  * Ingredients Manager Component - Reorganized with categorized inventory and ordering system
@@ -47,7 +52,7 @@ const IngredientsManager = memo(() => {
         categories.beer.push(ingredient);
       } else if (category === 'wine') {
         categories.wine.push(ingredient);
-      } else if (['whiskey', 'gin', 'rum', 'vodka', 'agave', 'cordials/liqueur', 'amari', 'misc spirits'].includes(category)) {
+      } else if (['whiskey', 'gin', 'rum', 'vodka', 'agave', 'cordials/liqueur', 'amari', 'misc spirits'].includes(category)) { // amari = Italian bitter liqueurs (amaro plural) // cspell:ignore amari amaro
         categories.liquor.push(ingredient);
       } else {
         categories.ingredients.push(ingredient);
@@ -141,21 +146,12 @@ const IngredientsManager = memo(() => {
     setEditingIngredient(null);
   }, []);
 
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = spiritsAndCordials.length + otherIngredients.length;
-    const avgPrice = total > 0 
-      ? [...spiritsAndCordials, ...otherIngredients]
-          .reduce((sum, ing) => sum + (ing.price || 0), 0) / total
-      : 0;
-    
-    return {
-      total,
-      spirits: spiritsAndCordials.length,
-      others: otherIngredients.length,
-      avgPrice
-    };
-  }, [spiritsAndCordials, otherIngredients]);
+
+
+  // Show skeleton loading during app initialization
+  if (!state.isInitialized) {
+    return <IngredientSkeleton count={8} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -197,30 +193,26 @@ const IngredientsManager = memo(() => {
             { id: 'beer', label: 'Beer', icon: Beer, count: categorizedIngredients.beer.length },
             { id: 'wine', label: 'Wine', icon: Wine, count: categorizedIngredients.wine.length },
             { id: 'liquor', label: 'Liquor', icon: Zap, count: categorizedIngredients.liquor.length }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  setSelectedCategory('All');
-                  clearSearch();
-                }}
-                className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setSelectedCategory('All');
+                clearSearch();
+              }}
+              className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                 }`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-                <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full text-xs">
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+              <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full text-xs">
+                {tab.count}
+              </span>
+            </button>
+          ))}
         </nav>
       </div>
 
@@ -341,13 +333,13 @@ const IngredientsManager = memo(() => {
               className="pr-10"
               aria-label="Search ingredients"
             />
-            
+
             {isSearching && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 <div className="animate-spin w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full" />
               </div>
             )}
-            
+
             {searchTerm && !isSearching && (
               <Button
                 onClick={clearSearch}
@@ -558,9 +550,13 @@ const IngredientModal = memo(({ ingredient, onClose }) => {
   }, [formData, dispatch, onClose]);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      role="dialog"
+      aria-modal="true"
+      tabIndex={-1}
     >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">

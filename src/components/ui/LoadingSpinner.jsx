@@ -1,14 +1,15 @@
-import React, { memo } from 'react';
+/* eslint-disable unused-imports/no-unused-imports */
 import { Loader2 } from 'lucide-react';
+import { memo } from 'react';
 
 /**
  * Loading Spinner Component - Better loading states
  */
-const LoadingSpinner = memo(({ 
-  size = 'md', 
-  text = 'Loading...', 
+const LoadingSpinner = memo(({
+  size = 'md',
+  text = 'Loading...',
   className = '',
-  fullScreen = false 
+  fullScreen = false
 }) => {
   const sizeClasses = {
     sm: 'w-4 h-4',

@@ -7,9 +7,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Production builds
 dist
 dist-ssr
+build
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 *.local
 
 # Editor directories and files
@@ -23,5 +36,32 @@ dist-ssr
 *.sln
 *.sw?
 
+# Testing
+coverage
+.nyc_output
+*.lcov
+
+# Storybook
 *storybook.log
 storybook-static
+
+# Cache directories
+.cache
+.parcel-cache
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Debug files
+*.cpuprofile
+*.heapsnapshot
+
+# Package manager files
+yarn.lock
+package-lock.json
+pnpm-lock.yaml

@@ -1,9 +1,13 @@
+/* eslint-disable unused-imports/no-unused-imports */
+import { GitCompare, Search, Star, X } from 'lucide-react';
 import React, { memo, useCallback } from 'react';
-import { Search, Star, GitCompare, X } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { useDebouncedSearch } from '../../hooks';
+
 import { ActionType, BASE_SPIRITS, FLAVOR_PROFILES } from '../../constants';
-import { Button, Input, Select } from '../ui';
+import { useDebouncedSearch } from '../../hooks';
+import { useApp } from '../../hooks/useApp';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
 
 /**
  * Recipe Filters Component - Provides search and filtering controls for recipes
@@ -11,14 +15,14 @@ import { Button, Input, Select } from '../ui';
 const RecipeFilters = memo(() => {
   const { state, dispatch } = useApp();
   const { filters, comparison } = state;
-  
+
   // Debounced search to improve performance
-  const { 
-    searchTerm, 
-    setSearchTerm, 
-    debouncedSearchTerm, 
+  const {
+    searchTerm,
+    setSearchTerm,
+    debouncedSearchTerm,
     isSearching,
-    clearSearch 
+    clearSearch
   } = useDebouncedSearch(filters.searchTerm, 300);
 
   // Update global search term when debounced value changes
@@ -72,10 +76,10 @@ const RecipeFilters = memo(() => {
   }, [dispatch, clearSearch]);
 
   // Check if any filters are active
-  const hasActiveFilters = 
-    filters.searchTerm || 
-    filters.category !== 'All' || 
-    filters.flavorProfile !== 'All' || 
+  const hasActiveFilters =
+    filters.searchTerm ||
+    filters.category !== 'All' ||
+    filters.flavorProfile !== 'All' ||
     filters.favoritesOnly;
 
   return (
@@ -92,14 +96,14 @@ const RecipeFilters = memo(() => {
             className="pr-10"
             aria-label="Search recipes"
           />
-          
+
           {/* Loading indicator */}
           {isSearching && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <div className="animate-spin w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full" />
             </div>
           )}
-          
+
           {/* Clear search button */}
           {searchTerm && !isSearching && (
             <Button
@@ -197,7 +201,7 @@ const RecipeFilters = memo(() => {
             <span className="text-sm text-gray-600 dark:text-gray-400">
               Active filters:
             </span>
-            
+
             {filters.searchTerm && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full">
                 Search: "{filters.searchTerm}"
@@ -217,7 +221,7 @@ const RecipeFilters = memo(() => {
                 </Button>
               </span>
             )}
-            
+
             {filters.category !== 'All' && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
                 Category: {filters.category}
@@ -234,7 +238,7 @@ const RecipeFilters = memo(() => {
                 </Button>
               </span>
             )}
-            
+
             {filters.flavorProfile !== 'All' && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded-full">
                 Flavor: {filters.flavorProfile}
@@ -251,7 +255,7 @@ const RecipeFilters = memo(() => {
                 </Button>
               </span>
             )}
-            
+
             {filters.favoritesOnly && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs rounded-full">
                 Favorites Only
@@ -283,7 +287,7 @@ const RecipeFilters = memo(() => {
                 ({comparison.selectedIds.length}/3 selected)
               </span>
             </div>
-            
+
             {comparison.selectedIds.length > 1 && (
               <Button
                 onClick={() => dispatch({

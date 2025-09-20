@@ -1,17 +1,37 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderWithProviders, userEvent, waitFor, act } from '../utils/test-utils';
-import AIAssistant from '../../components/features/AIAssistant';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { apiKeyService } from '../../services/apiKeyService';
+import { renderWithProviders, userEvent, waitFor } from '../utils/test-utils';
 
 // Mock the Gemini AI service
 vi.mock('../../services/geminiService', () => ({
   geminiService: {
     generate: vi.fn().mockResolvedValue('I recommend an Old Fashioned with bourbon, simple syrup, and bitters.'),
     testApiKey: vi.fn().mockResolvedValue(true),
-    validateApiKey: vi.fn().mockReturnValue(true)
+    validateApiKey: vi.fn().mockReturnValue(true),
+    isConfigured: vi.fn().mockReturnValue(true),
+    getKeySource: vi.fn().mockReturnValue({
+      source: 'memory',
+      hasEnvironmentKey: false,
+      hasMemoryKey: true,
+      isConfigured: true
+    })
   },
   generateRecipeSuggestion: vi.fn(),
   isApiKeyConfigured: vi.fn(() => true),
   setApiKey: vi.fn()
+}));
+
+// Mock the API Key service
+vi.mock('../../services/apiKeyService', () => ({
+  apiKeyService: {
+    getApiKey: vi.fn((service) => service === 'gemini' ? 'test-api-key' : null),
+    hasApiKey: vi.fn((service) => service === 'gemini'),
+    setApiKey: vi.fn(),
+    removeApiKey: vi.fn(),
+    _getEnvironmentKey: vi.fn(() => null),
+    _apiKeyStore: new Map([['gemini', 'test-api-key']])
+  }
 }));
 
 const mockState = {
@@ -48,7 +68,7 @@ describe('AIAssistant Component', () => {
       <AIAssistant />,
       { initialState: mockState }
     );
-    
+
     expect(getByText('AI Assistant')).toBeInTheDocument();
     expect(getByPlaceholderText(/ask me about cocktails, recipes, or get recommendations/i)).toBeInTheDocument();
   });
@@ -66,44 +86,44 @@ describe('AIAssistant Component', () => {
 
   it('sends new message', async () => {
     const user = userEvent.setup();
-    
+
     const { getByPlaceholderText, getByRole } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
-    
+
     const input = getByPlaceholderText(/ask me about cocktails, recipes, or get recommendations/i);
     const sendButton = getByRole('button', { name: /send/i });
-    
+
     await user.type(input, 'What is a good gin cocktail?');
     await user.click(sendButton);
-    
+
     expect(input).toHaveValue('');
   });
 
   it('sends message on Enter key', async () => {
     const user = userEvent.setup();
-    
+
     const { getByPlaceholderText } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
-    
+
     const input = getByPlaceholderText(/ask me about cocktails, recipes, or get recommendations/i);
-    
+
     await user.type(input, 'Test message{Enter}');
-    
+
     expect(input).toHaveValue('');
   });
 
   it('prevents sending empty messages', async () => {
     const user = userEvent.setup();
-    
+
     const { getByRole } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
-    
+
     const sendButton = getByRole('button', { name: /send/i });
     expect(sendButton).toBeDisabled();
   });
@@ -140,12 +160,12 @@ describe('AIAssistant Component', () => {
 
   it('handles suggested prompt clicks', async () => {
     const user = userEvent.setup();
-    
+
     const { getByText, getByPlaceholderText } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
-    
+
     const prompt = getByText(/suggest a cocktail with bourbon and citrus/i);
     await user.click(prompt);
 
@@ -155,7 +175,7 @@ describe('AIAssistant Component', () => {
 
   it('copies message content', async () => {
     const user = userEvent.setup();
-    
+
     // Mock clipboard API
     Object.defineProperty(navigator, 'clipboard', {
       value: {
@@ -163,12 +183,12 @@ describe('AIAssistant Component', () => {
       },
       writable: true
     });
-    
+
     const { container } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
-    
+
     const copyButton = container.querySelector('[aria-label*="copy"]');
     if (copyButton) {
       await user.click(copyButton);
@@ -206,6 +226,10 @@ describe('AIAssistant Component', () => {
       return originalGetItem(key);
     });
 
+    // Mock apiKeyService to return null for unconfigured state
+    const originalGetApiKey = apiKeyService.getApiKey;
+    apiKeyService.getApiKey = vi.fn(() => null);
+
     const user = userEvent.setup();
     const unconfiguredState = { ...mockState, geminiApiKey: '' };
 
@@ -215,32 +239,33 @@ describe('AIAssistant Component', () => {
     );
 
     // Open API key modal
-    const configButton = getByText(/configure api key/i);
+    const configButton = getByText('Configure API Key');
     await user.click(configButton);
 
-    // Use more specific selector for the input field
-    const apiKeyInput = getByLabelText(/gemini api key/i);
+    // Wait for modal to appear and find the input field
+    const apiKeyInput = await waitFor(() => getByLabelText('Gemini API Key'));
     await user.type(apiKeyInput, 'test-api-key');
 
-    const saveButton = getByText(/save api key/i);
+    const saveButton = getByText('Save API Key');
     await user.click(saveButton);
 
-    // Restore original mock
+    // Restore original mocks
     global.localStorage.getItem = originalGetItem;
+    apiKeyService.getApiKey = originalGetApiKey;
   });
 
   it('handles PDF file upload', async () => {
     const user = userEvent.setup();
-    
+
     const { getByText, getByLabelText } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
-    
+
     // Open PDF upload section
     const uploadButton = getByLabelText(/upload pdf recipe book/i);
     await user.click(uploadButton);
-    
+
     const fileInput = getByLabelText(/select pdf file/i);
     expect(fileInput).toBeInTheDocument();
     expect(fileInput).toHaveAttribute('accept', '.pdf');

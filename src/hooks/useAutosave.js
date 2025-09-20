@@ -2,7 +2,8 @@
 // AUTOSAVE HOOK
 // =============================================================================
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { useDebouncedCallback } from './useDebounce';
 
 /**
@@ -26,7 +27,7 @@ export const useAutosave = (data, saveFunction, options = {}) => {
   const [lastSaved, setLastSaved] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const initialDataRef = useRef(data);
   const isInitialRender = useRef(true);
   const saveTimeoutRef = useRef(null);
@@ -42,7 +43,7 @@ export const useAutosave = (data, saveFunction, options = {}) => {
       isInitialRender.current = false;
       return;
     }
-    
+
     setHasUnsavedChanges(hasChanges());
   }, [data, hasChanges, skipInitial]);
 
@@ -123,9 +124,10 @@ export const useAutosave = (data, saveFunction, options = {}) => {
 
   // Cleanup on unmount
   useEffect(() => {
+    const timeoutId = saveTimeoutRef.current;
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
     };
   }, []);
@@ -151,7 +153,7 @@ export const useAutosave = (data, saveFunction, options = {}) => {
  */
 export const useRecipeAutosave = (recipeData, recipeId, options = {}) => {
   const draftKey = `recipe-draft-${recipeId}`;
-  
+
   // Save draft to localStorage
   const saveDraft = useCallback(async (data) => {
     const draft = {
@@ -159,7 +161,7 @@ export const useRecipeAutosave = (recipeData, recipeId, options = {}) => {
       lastModified: Date.now(),
       isDraft: true
     };
-    
+
     localStorage.setItem(draftKey, JSON.stringify(draft));
   }, [draftKey]);
 

@@ -2,7 +2,8 @@
 // ADVANCED SEARCH HOOK
 // =============================================================================
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
 import { useDebounce } from './useDebounce';
 
 /**
@@ -85,44 +86,6 @@ export const useAdvancedSearch = (data = [], options = {}) => {
     return similarity >= fuzzyThreshold;
   }, [enableFuzzy, caseSensitive, exactMatch, fuzzyThreshold]);
 
-  // Calculate relevance score for search results
-  const calculateRelevance = useCallback((item, searchTerms) => {
-    let score = 0;
-    const terms = searchTerms.toLowerCase().split(/\s+/).filter(Boolean);
-    
-    searchFields.forEach((field, fieldIndex) => {
-      const fieldValue = getNestedValue(item, field);
-      if (!fieldValue) return;
-      
-      const fieldText = String(fieldValue).toLowerCase();
-      
-      terms.forEach((term, termIndex) => {
-        // Exact match bonus
-        if (fieldText.includes(term)) {
-          score += 10;
-          
-          // Start of field bonus
-          if (fieldText.startsWith(term)) {
-            score += 5;
-          }
-          
-          // Field priority bonus (earlier fields get higher scores)
-          score += (searchFields.length - fieldIndex) * 2;
-          
-          // Term position bonus (earlier terms get higher scores)
-          score += (terms.length - termIndex);
-        }
-        
-        // Fuzzy match bonus (lower than exact)
-        else if (fuzzyMatch(fieldText, term)) {
-          score += 3;
-        }
-      });
-    });
-    
-    return score;
-  }, [searchFields, fuzzyMatch]);
-
   // Get nested object value by path
   const getNestedValue = useCallback((obj, path) => {
     return path.split('.').reduce((current, key) => {
@@ -133,18 +96,56 @@ export const useAdvancedSearch = (data = [], options = {}) => {
     }, obj);
   }, []);
 
+  // Calculate relevance score for search results
+  const calculateRelevance = useCallback((item, searchTerms) => {
+    let score = 0;
+    const terms = searchTerms.toLowerCase().split(/\s+/).filter(Boolean);
+
+    searchFields.forEach((field, fieldIndex) => {
+      const fieldValue = getNestedValue(item, field);
+      if (!fieldValue) return;
+
+      const fieldText = String(fieldValue).toLowerCase();
+
+      terms.forEach((term, termIndex) => {
+        // Exact match bonus
+        if (fieldText.includes(term)) {
+          score += 10;
+
+          // Start of field bonus
+          if (fieldText.startsWith(term)) {
+            score += 5;
+          }
+
+          // Field priority bonus (earlier fields get higher scores)
+          score += (searchFields.length - fieldIndex) * 2;
+
+          // Term position bonus (earlier terms get higher scores)
+          score += (terms.length - termIndex);
+        }
+
+        // Fuzzy match bonus (lower than exact)
+        else if (fuzzyMatch(fieldText, term)) {
+          score += 3;
+        }
+      });
+    });
+
+    return score;
+  }, [searchFields, fuzzyMatch, getNestedValue]);
+
   // Highlight search terms in text
   const highlightText = useCallback((text, searchTerms) => {
     if (!enableHighlight || !searchTerms) return text;
-    
+
     const terms = searchTerms.split(/\s+/).filter(Boolean);
     let highlightedText = text;
-    
+
     terms.forEach(term => {
       const regex = new RegExp(`(${term})`, caseSensitive ? 'g' : 'gi');
       highlightedText = highlightedText.replace(regex, '<mark>$1</mark>');
     });
-    
+
     return highlightedText;
   }, [enableHighlight, caseSensitive]);
 
@@ -153,7 +154,7 @@ export const useAdvancedSearch = (data = [], options = {}) => {
     return items.filter(item => {
       return Object.entries(filters).every(([key, value]) => {
         if (!value || value === 'All') return true;
-        
+
         const itemValue = getNestedValue(item, key);
         if (Array.isArray(itemValue)) {
           return itemValue.some(v => String(v).toLowerCase().includes(String(value).toLowerCase()));
@@ -254,8 +255,8 @@ export const useAdvancedSearch = (data = [], options = {}) => {
         const newStats = searchResults.stats;
         // Only update if stats actually changed
         if (prev.totalResults !== newStats.totalResults ||
-            prev.lastSearchTerm !== newStats.lastSearchTerm ||
-            Math.abs(prev.searchTime - newStats.searchTime) > 0.1) {
+          prev.lastSearchTerm !== newStats.lastSearchTerm ||
+          Math.abs(prev.searchTime - newStats.searchTime) > 0.1) {
           return newStats;
         }
         return prev;
@@ -307,23 +308,23 @@ export const useAdvancedSearch = (data = [], options = {}) => {
     isSearching,
     searchResults: searchResults.results,
     searchStats,
-    
+
     // Filters
     filters,
     updateFilters,
     clearFilters,
-    
+
     // Sorting
     sortBy,
     setSortBy,
-    
+
     // History
     searchHistory,
     clearHistory,
-    
+
     // Actions
     clearSearch,
-    
+
     // Utilities
     highlightText: (text) => highlightText(text, debouncedSearchTerm),
     getRelevanceScore: (item) => calculateRelevance(item, debouncedSearchTerm)

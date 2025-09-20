@@ -102,6 +102,7 @@ export const BASE_SPIRITS = [
 // Action Types for State Management
 export const ActionType = {
   INITIALIZE_APP: 'INITIALIZE_APP',
+  LOAD_HYBRID_DATA: 'LOAD_HYBRID_DATA',
   SET_THEME: 'SET_THEME',
   SET_ACTIVE_TAB: 'SET_ACTIVE_TAB',
   SET_MODAL: 'SET_MODAL',

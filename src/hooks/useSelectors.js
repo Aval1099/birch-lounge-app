@@ -2,9 +2,11 @@
 // OPTIMIZED SELECTORS HOOK
 // =============================================================================
 
-import { useMemo, useCallback } from 'react';
-import { useApp } from '../context/AppContext';
+import { useCallback, useMemo } from 'react';
+
 import { safeParseFloat } from '../utils';
+
+import { useApp } from './useApp';
 
 /**
  * Optimized selectors hook with memoization to prevent unnecessary re-renders
@@ -16,7 +18,7 @@ export const useSelectors = () => {
   // Memoized recipe groups selector
   const selectRecipeGroups = useMemo(() => {
     const groups = {};
-    
+
     state.recipes.forEach(recipe => {
       if (!groups[recipe.name]) {
         groups[recipe.name] = [];
@@ -47,13 +49,13 @@ export const useSelectors = () => {
     let filteredRecipes = state.recipes.filter(recipe => {
       // Favorites filter
       if (favoritesOnly && !recipe.isFavorite) return false;
-      
+
       // Category filter
       if (category !== 'All' && recipe.category !== category) return false;
-      
+
       // Flavor profile filter
       if (flavorProfile !== 'All' && !recipe.flavorProfile.includes(flavorProfile)) return false;
-      
+
       return true;
     });
 
@@ -63,7 +65,7 @@ export const useSelectors = () => {
         .map(recipe => {
           let score = 0;
           const recipeName = recipe.name.toLowerCase();
-          
+
           // Exact name match gets highest score
           if (recipeName === term) score = 5;
           // Name starts with term gets high score
@@ -71,11 +73,11 @@ export const useSelectors = () => {
           // Name contains term gets medium score
           else if (recipeName.includes(term)) score = 3;
           // Ingredient match gets lower score
-          else if (recipe.ingredients.some(i => 
+          else if (recipe.ingredients.some(i =>
             i.name.toLowerCase().includes(term)
           )) score = 2;
           // Tag match gets lowest score
-          else if (recipe.tags.some(t => 
+          else if (recipe.tags.some(t =>
             t.toLowerCase().includes(term)
           )) score = 1;
 
@@ -98,7 +100,7 @@ export const useSelectors = () => {
     // Group filtered recipes
     const groups = {};
     const orderedGroupNames = [];
-    
+
     filteredRecipes.forEach(recipe => {
       if (!groups[recipe.name]) {
         groups[recipe.name] = selectRecipeGroups[recipe.name];
@@ -112,7 +114,7 @@ export const useSelectors = () => {
   // Memoized ingredients categorization
   const { spiritsAndCordials, otherIngredients } = useMemo(() => {
     const alcoholicCategories = [
-      'Whiskey', 'Vodka', 'Gin', 'Tequila', 'Rum', 'Brandy', 
+      'Whiskey', 'Vodka', 'Gin', 'Tequila', 'Rum', 'Brandy',
       'Cordials/Liqueurs', 'Amari', 'Beer', 'Wine', 'Misc Liqueur/Spirit'
     ];
 
@@ -140,15 +142,15 @@ export const useSelectors = () => {
     }
 
     return recipeIngredients.reduce((total, recipeIngredient) => {
-      const ingredient = state.ingredients.find(i => 
+      const ingredient = state.ingredients.find(i =>
         i.name.toLowerCase() === recipeIngredient.name.toLowerCase()
       );
-      
+
       if (!ingredient) return total;
-      
+
       const amount = safeParseFloat(recipeIngredient.amount);
       const price = safeParseFloat(ingredient.price);
-      
+
       return total + (amount * price);
     }, 0);
   }, [state.ingredients]);
@@ -181,9 +183,9 @@ export const useSelectors = () => {
     const totalRecipes = state.recipes.length;
     const favoriteRecipes = state.recipes.filter(r => r.isFavorite).length;
     const categories = [...new Set(state.recipes.map(r => r.category))].length;
-    const avgCost = totalRecipes > 0 
-      ? state.recipes.reduce((sum, recipe) => 
-          sum + calculateRecipeCost(recipe.ingredients), 0) / totalRecipes
+    const avgCost = totalRecipes > 0
+      ? state.recipes.reduce((sum, recipe) =>
+        sum + calculateRecipeCost(recipe.ingredients), 0) / totalRecipes
       : 0;
 
     return {
