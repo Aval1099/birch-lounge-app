@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { RecipeGrid } from '../../components/features';
 import { mockRecipe, renderWithProviders, userEvent } from '../utils/test-utils';
 
 const mockRecipes = [

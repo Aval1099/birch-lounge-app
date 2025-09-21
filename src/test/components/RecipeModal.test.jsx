@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { RecipeModal } from '../../components/features';
 import { mockRecipe, renderWithProviders, userEvent } from '../utils/test-utils';
 
 const mockState = {

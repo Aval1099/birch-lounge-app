@@ -1,13 +1,9 @@
 
-
-
-
-// Used for close button icon
+import { X } from 'lucide-react';
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useMobileDetection, useSwipeGesture } from '../../hooks';
-
-// Used for close button
+import { Button } from './Button';
 
 
 

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { Button } from '../../components/ui';
 import { renderWithProviders, userEvent } from '../utils/test-utils';
 
 describe('Button Component', () => {

@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { BottomSheet } from '../../components/ui';
 import { render } from '../utils/test-utils';
 
 // Mock the mobile detection hook
