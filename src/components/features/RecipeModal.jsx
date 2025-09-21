@@ -1,10 +1,16 @@
 import { memo, useCallback, useEffect, useState } from 'react';
+import { AlertCircle, Plus, Save, Trash2, X } from 'lucide-react';
 
 import { ActionType, DIFFICULTY_LEVELS, FLAVOR_PROFILES, INGREDIENT_CATEGORIES_FLAT, UNITS } from '../../constants';
 import { useRecipeAutosave } from '../../hooks';
 import { useApp } from '../../hooks/useApp';
 import { createRecipe, validateRecipe } from '../../models';
 import { generateId } from '../../utils';
+import { CompactAutosaveIndicator, DetailedAutosaveIndicator } from '../ui/AutosaveIndicator';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
+import Textarea from '../ui/Textarea';
 
 /**
  * Recipe Modal Component - Create/Edit Recipe Form

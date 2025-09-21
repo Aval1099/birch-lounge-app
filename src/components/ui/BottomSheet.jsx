@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useMobileDetection, useSwipeGesture } from '../../hooks';
-import { Button } from './Button';
+import Button from './Button';
 
 
 

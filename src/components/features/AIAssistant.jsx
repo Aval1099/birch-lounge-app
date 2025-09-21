@@ -1,4 +1,22 @@
 
+import {
+  AlertCircle,
+  BookOpen,
+  Bot,
+  Check,
+  CheckCircle,
+  Copy,
+  FileText,
+  Loader,
+  RefreshCw,
+  Send,
+  Settings,
+  Sparkles,
+  Trash2,
+  Upload,
+  User,
+  X
+} from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
 import { ActionType } from '../../constants';
@@ -6,6 +24,10 @@ import { useApp } from '../../hooks/useApp';
 import { apiKeyService } from '../../services/apiKeyService';
 import { geminiService } from '../../services/geminiService';
 import { processPDFRecipeBook } from '../../services/pdfService';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import LoadingSpinner from '../ui/LoadingSpinner';
+import Textarea from '../ui/Textarea';
 
 
 /**
@@ -780,8 +802,106 @@ const ApiKeyModal = memo(({ onClose }) => {
   );
 });
 
+/**
+ * Key Rotation Modal Component - For rotating API keys for enhanced security
+ */
+const KeyRotationModal = memo(({ onClose }) => {
+  const [isRotating, setIsRotating] = useState(false);
+  const { dispatch } = useApp();
+
+  const handleRotateKey = useCallback(async () => {
+    setIsRotating(true);
+    try {
+      // Clear current API key to force user to enter new one
+      await apiKeyService.clearApiKey();
+      dispatch({ type: ActionType.SET_GEMINI_API_KEY, payload: null });
+
+      // Show success message and close modal
+      onClose();
+
+      // Note: In a real implementation, you might want to:
+      // 1. Generate a new API key automatically
+      // 2. Send notification to user about key rotation
+      // 3. Log the rotation event for security audit
+
+    } catch (error) {
+      console.error('Failed to rotate API key:', error);
+    } finally {
+      setIsRotating(false);
+    }
+  }, [dispatch, onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="key-rotation-modal-title"
+      tabIndex={-1}
+    >
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 id="key-rotation-modal-title" className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Rotate API Key
+          </h2>
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            className="p-2"
+            ariaLabel="Close modal"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Settings className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Enhanced Security
+                </h3>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  Rotating your API key regularly enhances security. This will clear your current key and require you to enter a new one.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="ghost"
+              disabled={isRotating}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRotateKey}
+              variant="primary"
+              loading={isRotating}
+              disabled={isRotating}
+            >
+              {isRotating ? 'Rotating...' : 'Rotate Key'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 AIAssistant.displayName = 'AIAssistant';
 MessageBubble.displayName = 'MessageBubble';
 ApiKeyModal.displayName = 'ApiKeyModal';
+KeyRotationModal.displayName = 'KeyRotationModal';
 
 export default AIAssistant;

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import AIAssistant from '../../components/features/AIAssistant';
 import { apiKeyService } from '../../services/apiKeyService';
 import { renderWithProviders, userEvent, waitFor } from '../utils/test-utils';
 

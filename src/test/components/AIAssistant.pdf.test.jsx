@@ -6,6 +6,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import AIAssistant from '../../components/features/AIAssistant';
 import { processPDFRecipeBook } from '../../services/pdfService';
 import { renderWithProviders } from '../utils/test-utils';
 

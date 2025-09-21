@@ -37,7 +37,8 @@ export default defineConfig([
     rules: {
       // Enhanced rules for better code quality
       'no-unused-vars': 'off', // Handled by unused-imports
-      'unused-imports/no-unused-imports': 'error',
+      // Changed from 'error' to 'warn' to prevent auto-deletion of JSX-used imports
+      'unused-imports/no-unused-imports': 'warn',
       'unused-imports/no-unused-vars': [
         'warn',
         {
@@ -45,6 +46,8 @@ export default defineConfig([
           varsIgnorePattern: '^_',
           args: 'after-used',
           argsIgnorePattern: '^_',
+          // Ignore React components and JSX-related imports
+          ignoreRestSiblings: true,
         },
       ],
 
@@ -83,6 +86,11 @@ export default defineConfig([
       'no-var': 'error',
       'object-shorthand': 'error',
       'prefer-template': 'error',
+
+      // React/JSX specific rules to prevent false positives
+      'react/jsx-uses-react': 'off', // Not needed in React 17+
+      'react/jsx-uses-vars': 'off',  // Not needed in React 17+
+      'react/react-in-jsx-scope': 'off', // Not needed in React 17+
     },
   },
   {
