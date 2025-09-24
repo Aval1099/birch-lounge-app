@@ -122,3 +122,4 @@ vulnerability-report.json
 .vscode/settings.json
 .idea/workspace.xml
 *.sublime-workspace
+.vercel

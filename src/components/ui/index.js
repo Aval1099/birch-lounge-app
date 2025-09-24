@@ -21,3 +21,14 @@ export { IngredientSkeleton, MenuSkeleton, ModalSkeleton, RecipeSkeleton, Search
 export { default as SyncStatusIndicator } from './SyncStatusIndicator';
 export { default as Textarea } from './Textarea';
 export { default as Toast } from './Toast';
+
+// =============================================================================
+// MODERN UI COMPONENTS - Premium Design System
+// =============================================================================
+
+export { default as ModernButton } from './ModernButton';
+export { default as ModernCard } from './ModernCard';
+export { default as ModernInput } from './ModernInput';
+export { default as ModernMobileNav } from './ModernMobileNav';
+export { default as ModernRecipeCard } from './ModernRecipeCard';
+export { default as ModernHeader } from './ModernHeader';

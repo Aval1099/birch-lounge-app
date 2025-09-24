@@ -2,6 +2,9 @@
 // UTILITY FUNCTIONS - TypeScript Version
 // =============================================================================
 
+// Class name utility
+export { cn } from './cn';
+
 /**
  * Sanitization options interface
  */

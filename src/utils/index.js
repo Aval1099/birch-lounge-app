@@ -2,6 +2,9 @@
 // UTILITY FUNCTIONS
 // =============================================================================
 
+// Class name utility
+export { cn } from './cn';
+
 /**
  * Debounce function to limit the rate of function calls
  * @param {Function} func - Function to debounce

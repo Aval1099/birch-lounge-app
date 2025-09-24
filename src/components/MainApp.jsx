@@ -35,6 +35,7 @@ const AIAssistant = lazy(() => import('./features/AIAssistant'));
 const MenuBuilder = lazy(() => import('./features/MenuBuilder'));
 const BatchScalingCalculator = lazy(() => import('./features/BatchScalingCalculator'));
 const AdvancedOfflineManager = lazy(() => import('./features/AdvancedOfflineManager'));
+const ModernUIDemo = lazy(() => import('./demo/ModernUIDemo'));
 
 
 
@@ -75,6 +76,13 @@ const BatchScalingTab = memo(() => (
 ));
 BatchScalingTab.displayName = 'BatchScalingTab';
 
+const ModernUIDemoTab = memo(() => (
+  <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
+    <ModernUIDemo />
+  </Suspense>
+));
+ModernUIDemoTab.displayName = 'ModernUIDemoTab';
+
 // Memoized tab configuration to prevent unnecessary re-renders
 const TABS = [
   { id: 'recipes', label: 'Recipes', icon: ChefHat, component: RecipesTab },
@@ -83,7 +91,8 @@ const TABS = [
   { id: 'techniques', label: 'Techniques', icon: BookOpen, component: TechniquesManager },
   { id: 'batch', label: 'Batch Scaling', icon: Calculator, component: BatchScalingTab },
   { id: 'service', label: 'Service Mode', icon: Timer, component: ServiceMode },
-  { id: 'ai', label: 'AI Assistant', icon: Zap, component: AITab }
+  { id: 'ai', label: 'AI Assistant', icon: Zap, component: AITab },
+  { id: 'demo', label: 'Modern UI', icon: Settings, component: ModernUIDemoTab }
 ];
 
 const MainApp = memo(() => {

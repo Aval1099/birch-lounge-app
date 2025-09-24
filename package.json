@@ -71,8 +71,10 @@
     "@octokit/rest": "^22.0.0",
     "@supabase/supabase-js": "^2.57.4",
     "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.18",
     "axios": "^1.12.2",
     "cheerio": "^1.1.2",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
     "notion-client": "^7.6.0",
     "openai": "^5.23.0",
@@ -84,6 +86,7 @@
     "react-window": "^2.1.1",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
+    "tailwind-merge": "^3.3.1",
     "web-vitals": "^5.1.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },

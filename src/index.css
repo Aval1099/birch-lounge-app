@@ -1,3 +1,6 @@
+/* Design System */
+@import './styles/design-system.css';
+
 /* Tailwind directives - processed by PostCSS/Tailwind plugin (Tailwind v4+)
   Use the new import paths for preflight and utilities. */
 @import 'tailwindcss/preflight';
