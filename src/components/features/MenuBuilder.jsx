@@ -1,6 +1,6 @@
 
-/* eslint-disable unused-imports/no-unused-imports */
-import { Clock, DollarSign, FileText, Plus, Printer, Save, Search, Trash2, X } from 'lucide-react';
+
+import { ChevronDown, ChevronUp, Clock, DollarSign, FileText, Plus, Printer, Save, Search, Trash2, X } from 'lucide-react';
 import { memo, useCallback, useMemo, useState } from 'react';
 
 import { ActionType } from '../../constants';
@@ -106,6 +106,22 @@ const MenuBuilder = memo(() => {
       payload: newOrder
     });
   }, [dispatch]);
+
+  const handleMoveUp = useCallback((index) => {
+    if (index > 0) {
+      const newItems = [...currentMenu.items];
+      [newItems[index - 1], newItems[index]] = [newItems[index], newItems[index - 1]];
+      handleReorderItems(newItems);
+    }
+  }, [currentMenu.items, handleReorderItems]);
+
+  const handleMoveDown = useCallback((index) => {
+    if (index < currentMenu.items.length - 1) {
+      const newItems = [...currentMenu.items];
+      [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+      handleReorderItems(newItems);
+    }
+  }, [currentMenu.items, handleReorderItems]);
 
   // Get available recipes (not already in menu) with search and filtering
   const availableRecipes = useMemo(() => {
@@ -278,14 +294,39 @@ const MenuBuilder = memo(() => {
                           {formatCurrency(calculateRecipeCost(recipe))}
                         </p>
                       </div>
-                      <Button
-                        onClick={() => handleRemoveFromMenu(recipe.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        Remove
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {/* Reorder buttons */}
+                        <div className="flex flex-col">
+                          <Button
+                            onClick={() => handleMoveUp(index)}
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-6 w-6"
+                            disabled={index === 0}
+                            ariaLabel="Move up"
+                          >
+                            <ChevronUp className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            onClick={() => handleMoveDown(index)}
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-6 w-6"
+                            disabled={index === currentMenu.items.length - 1}
+                            ariaLabel="Move down"
+                          >
+                            <ChevronDown className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        <Button
+                          onClick={() => handleRemoveFromMenu(recipe.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 ))}

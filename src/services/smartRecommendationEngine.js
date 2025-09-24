@@ -185,7 +185,7 @@ export const getIngredientBasedRecommendations = (availableIngredients, allRecip
   const {
     maxRecommendations = 10,
     minConfidence = 30,
-    includePartialMatches = true,
+    includePartialMatches: _includePartialMatches = true,
     preferFavorites = true
   } = options;
 

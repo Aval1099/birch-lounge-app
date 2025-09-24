@@ -13,6 +13,8 @@ export { default as Icon } from './Icon';
 export { default as Input } from './Input';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as MobileNavigation } from './MobileNavigation';
+export { default as Modal } from './Modal';
+export { PerformanceIndicator } from './PerformanceIndicator';
 export { ResponsiveCard, ResponsiveContainer, default as ResponsiveGrid, ResponsiveList, ResponsiveModal } from './ResponsiveGrid';
 export { default as Select } from './Select';
 export { IngredientSkeleton, MenuSkeleton, ModalSkeleton, RecipeSkeleton, SearchSkeleton, default as Skeleton } from './SkeletonLoader';

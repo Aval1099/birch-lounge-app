@@ -1,8 +1,8 @@
-/* eslint-disable unused-imports/no-unused-imports */
+ 
 import {
-  Database, Key,
+  Activity, AlertTriangle, Check, Database, Download, Key, Moon,
   Save,
-  Sun
+  Sun, Trash2, Upload, X, Zap
 } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
 
@@ -10,6 +10,8 @@ import { ActionType } from '../../constants';
 import { useApp } from '../../hooks/useApp';
 import { storageService } from '../../services/storageService';
 import { validationService } from '../../services/validation';
+import CachePerformanceDashboard from '../admin/CachePerformanceDashboard';
+import { Button, Input } from '../ui';
 
 /**
  * Settings Modal Component - Application configuration and preferences
@@ -192,7 +194,8 @@ const SettingsModal = memo(({ onClose }) => {
   const tabs = [
     { id: 'general', label: 'General', icon: Sun },
     { id: 'ai', label: 'AI Assistant', icon: Key },
-    { id: 'data', label: 'Data Management', icon: Database }
+    { id: 'data', label: 'Data Management', icon: Database },
+    { id: 'performance', label: 'Cache Performance', icon: Activity }
   ];
 
   return (
@@ -448,6 +451,23 @@ const SettingsModal = memo(({ onClose }) => {
                         </Button>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'performance' && (
+              <div className="p-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                    Cache Performance Monitoring
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                    Monitor and optimize cache performance for better application responsiveness.
+                  </p>
+
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 max-h-[60vh] overflow-y-auto">
+                    <CachePerformanceDashboard />
                   </div>
                 </div>
               </div>

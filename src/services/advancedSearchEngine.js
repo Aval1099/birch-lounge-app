@@ -62,7 +62,7 @@ const generateCacheKey = (query, filters, context) => {
  * @param {Object} context - Search context
  * @returns {Array} Ranked results
  */
-const scoreAndRankResults = (results, searchParams, context) => {
+const scoreAndRankResults = (results, _searchParams, _context) => {
   return results.map(result => {
     let score = 0;
     const factors = [];
@@ -160,20 +160,20 @@ export const performAdvancedSearch = async (query, recipes = [], options = {}) =
     // Step 1: Natural Language Processing
     if (query && query.trim().length > 0) {
       nlpResults = processNaturalLanguageQuery(query);
-      
+
       if (!nlpResults.success) {
         throw new Error(`NLP processing failed: ${nlpResults.error}`);
       }
 
       // Step 2: Fuzzy Search for ingredient matching
       if (nlpResults.ingredients.length > 0) {
-        const ingredientNames = recipes.flatMap(recipe => 
+        const ingredientNames = recipes.flatMap(recipe =>
           recipe.ingredients ? recipe.ingredients.map(ing => ing.name) : []
         );
-        
+
         for (const ingredient of nlpResults.ingredients) {
           fuzzyResults = performFuzzySearch(ingredient.ingredient, ingredientNames);
-          
+
           if (fuzzyResults.corrections.length > 0) {
             didYouMean.push(...generateDidYouMeanSuggestions(ingredient.ingredient, fuzzyResults.corrections));
           }
@@ -205,13 +205,13 @@ export const performAdvancedSearch = async (query, recipes = [], options = {}) =
     // Step 4: Apply advanced filters
     let filteredResults = searchResults;
     let filterResults = null;
-    
+
     if (includeFilters && Object.keys(filters).length > 0) {
       const recipesToFilter = searchResults.map(result => result.recipe);
       filterResults = applyAdvancedFilters(recipesToFilter, filters);
-      
+
       if (filterResults.success) {
-        filteredResults = searchResults.filter(result => 
+        filteredResults = searchResults.filter(result =>
           filterResults.recipes.includes(result.recipe)
         );
       }
@@ -296,7 +296,7 @@ const performIngredientBasedSearch = async (nlpResults, recipes) => {
   }));
 
   const recommendations = getIngredientBasedRecommendations(availableIngredients, recipes);
-  
+
   return recommendations.map(rec => ({
     recipe: rec.recipe,
     relevanceScore: rec.analysis.confidence / 100,
@@ -321,7 +321,7 @@ const performStyleBasedSearch = async (nlpResults, recipes, context) => {
   };
 
   const recommendations = getContextualRecommendations(recipes, styleContext);
-  
+
   return recommendations.map(rec => ({
     recipe: rec.recipe,
     relevanceScore: rec.contextualScore / 100,
@@ -345,7 +345,7 @@ const performOccasionBasedSearch = async (nlpResults, recipes, context) => {
   };
 
   const recommendations = getContextualRecommendations(recipes, occasionContext);
-  
+
   return recommendations.map(rec => ({
     recipe: rec.recipe,
     relevanceScore: rec.contextualScore / 100,
@@ -369,7 +369,7 @@ const performSeasonalBasedSearch = async (nlpResults, recipes, context) => {
   };
 
   const recommendations = getContextualRecommendations(recipes, seasonalContext);
-  
+
   return recommendations.map(rec => ({
     recipe: rec.recipe,
     relevanceScore: rec.contextualScore / 100,
@@ -419,7 +419,7 @@ const performGeneralSearch = async (nlpResults, recipes, context) => {
  */
 const performContextualSearch = async (recipes, context) => {
   const recommendations = getContextualRecommendations(recipes, context, { maxRecommendations: 20 });
-  
+
   return recommendations.map(rec => ({
     recipe: rec.recipe,
     relevanceScore: rec.contextualScore / 100,

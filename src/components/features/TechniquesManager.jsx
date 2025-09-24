@@ -20,7 +20,7 @@ import { useApp } from '../../hooks/useApp';
  * Techniques Manager Component - Comprehensive bartending techniques library
  */
 const TechniquesManager = memo(() => {
-  const { state, dispatch } = useApp();
+  const { state, dispatch: _dispatch } = useApp();
   const { techniques = [] } = state;
   const [selectedTechnique, setSelectedTechnique] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -200,6 +200,24 @@ const TechniquesManager = memo(() => {
             )}
           </div>
 
+          {/* Search History */}
+          {searchHistory && searchHistory.length > 0 && !searchTerm && (
+            <div className="text-sm">
+              <span className="text-gray-600 dark:text-gray-400 mr-2">Recent searches:</span>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {searchHistory.slice(0, 5).map((term, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSearchTerm(term)}
+                    className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Select
@@ -234,7 +252,7 @@ const TechniquesManager = memo(() => {
               onChange={(e) => handleFilterChange('equipment', e.target.value)}
               aria-label="Filter by equipment"
             >
-              {equipmentTypes.map(equipment => (
+              {equipmentTypes.map((equipment, _index) => (
                 <option key={equipment} value={equipment}>
                   {equipment}
                 </option>
@@ -573,7 +591,7 @@ const TechniqueDetail = memo(({ technique, onBack, getTechniqueIcon }) => {
 /**
  * Add Technique Modal Component
  */
-const AddTechniqueModal = memo(({ onClose, categories, difficultyLevels, equipmentTypes }) => {
+const AddTechniqueModal = memo(({ onClose, categories, difficultyLevels, equipmentTypes: _equipmentTypes }) => {
   const { dispatch } = useApp();
   const [formData, setFormData] = useState({
     name: '',

@@ -1,4 +1,4 @@
-/* eslint-disable unused-imports/no-unused-imports */
+ 
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import React from 'react';
 
@@ -11,7 +11,9 @@ class ErrorBoundary extends React.Component {
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      retryCount: 0,
+      lastErrorTime: null
     };
   }
 
@@ -21,26 +23,74 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Enhanced error logging with context
+    const errorContext = {
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      },
+      errorInfo,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      componentStack: errorInfo.componentStack
+    };
+
+    console.error('ErrorBoundary caught an error:', errorContext);
 
     this.setState({
       error,
       errorInfo
     });
 
-    // You can also log the error to an error reporting service here
+    // Enhanced error reporting
     if (this.props.onError) {
-      this.props.onError(error, errorInfo);
+      this.props.onError(error, errorInfo, errorContext);
     }
+
+    // Optional: Send to error reporting service
+    this.reportError(errorContext);
   }
 
+  reportError = (errorContext) => {
+    // This could be enhanced to send to Sentry, LogRocket, etc.
+    try {
+      // Store error in localStorage for debugging
+      const errors = JSON.parse(localStorage.getItem('birch-lounge-errors') || '[]');
+      errors.push(errorContext);
+      // Keep only last 10 errors
+      if (errors.length > 10) {
+        errors.splice(0, errors.length - 10);
+      }
+      localStorage.setItem('birch-lounge-errors', JSON.stringify(errors));
+    } catch (e) {
+      console.warn('Failed to store error in localStorage:', e);
+    }
+  };
+
   handleReset = () => {
+    const now = Date.now();
+    const timeSinceLastError = now - (this.state.lastErrorTime || 0);
+
+    // Prevent rapid retry loops (minimum 5 seconds between retries)
+    if (timeSinceLastError < 5000 && this.state.retryCount > 0) {
+      console.warn('Error boundary: Preventing rapid retry');
+      return;
+    }
+
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
+      retryCount: this.state.retryCount + 1,
+      lastErrorTime: now
     });
+
+    // Optional: Call parent retry handler
+    if (this.props.onRetry) {
+      this.props.onRetry(this.state.retryCount + 1);
+    }
   };
 
   render() {

@@ -83,7 +83,7 @@ export const expectNoA11yViolations = async (container, options = {}) => {
  * @param {Array} expectedFocusOrder - Expected order of focusable elements
  * @returns {Object} Keyboard navigation test results
  */
-export const testKeyboardNavigation = (container, expectedFocusOrder = []) => {
+export const testKeyboardNavigation = (container, _expectedFocusOrder = []) => {
   const focusableElements = container.querySelectorAll(
     'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
   );
@@ -96,7 +96,7 @@ export const testKeyboardNavigation = (container, expectedFocusOrder = []) => {
   };
 
   // Check for proper tab indices
-  focusableElements.forEach((element, index) => {
+  focusableElements.forEach((element, _index) => {
     const tabIndex = element.getAttribute('tabindex');
     if (tabIndex && parseInt(tabIndex) > 0) {
       results.tabIndexIssues.push({

@@ -153,7 +153,7 @@ describe('RecipeGrid Component', () => {
   });
 
   it('displays recipe metadata correctly', () => {
-    const { getByText, getAllByText } = renderWithProviders(
+    const { getByText: _getByText, getAllByText } = renderWithProviders(
       <RecipeGrid />,
       { initialState: mockState }
     );

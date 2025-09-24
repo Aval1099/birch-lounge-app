@@ -1,7 +1,7 @@
 
-/* eslint-disable unused-imports/no-unused-imports */
+
 import MainApp from './components/MainApp';
-import { ErrorBoundary } from './components/ui';
+import EnhancedErrorBoundary from './components/ui/EnhancedErrorBoundary';
 import { AppProvider } from './context/AppContext';
 
 /**
@@ -10,14 +10,21 @@ import { AppProvider } from './context/AppContext';
  */
 function App() {
   return (
-    <ErrorBoundary
+    <EnhancedErrorBoundary
       title="Application Error"
       message="Something went wrong with the Birch Lounge app. Please refresh the page or contact support if the problem persists."
+      enableAutoRetry={true}
+      maxAutoRetries={1}
+      showErrorDetails={true}
+      onError={(error, errorInfo, errorContext) => {
+        // Global error tracking
+        console.error('Global application error:', errorContext);
+      }}
     >
       <AppProvider>
         <MainApp />
       </AppProvider>
-    </ErrorBoundary>
+    </EnhancedErrorBoundary>
   );
 }
 

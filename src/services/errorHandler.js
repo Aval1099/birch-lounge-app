@@ -38,11 +38,10 @@ export const errorHandler = {
 
     // Log error for debugging
     if (import.meta.env.DEV) {
-      console.group(`🔴 Error in ${context}`);
+      console.error(`🔴 Error in ${context}`);
       console.error('Error:', error);
       console.error('Stack:', error.stack);
       console.error('Info:', errorInfo);
-      console.groupEnd();
     } else {
       console.error(`Error in ${context}:`, errorInfo.message);
     }
@@ -147,7 +146,7 @@ export const errorHandler = {
   createBoundaryHandler: (componentName) => {
     return (error, errorInfo) => {
       const handled = errorHandler.handle(error, `Component: ${componentName}`);
-      
+
       // Additional logging for React errors
       if (import.meta.env.DEV) {
         console.error('React Error Info:', errorInfo);
@@ -435,7 +434,7 @@ export const errorHandler = {
    * @param {string} context - Context where error occurred
    * @returns {boolean} Whether the error can be retried
    */
-  canRetry: (error, context) => {
+  canRetry: (error, _context) => {
     const message = error.message?.toLowerCase() || '';
 
     // Network errors are usually retryable
@@ -591,6 +590,161 @@ export const errorHandler = {
       errorsByCategory: {},
       lastError: null,
       mostCommonErrors: []
+    };
+  },
+
+  /**
+   * Handle API key specific errors
+   * @param {Error} error - Error object
+   * @param {string} context - Context where error occurred
+   * @returns {Object} API key error info
+   */
+  handleApiKeyError: (error, context = 'API Key') => {
+    return errorHandler.handle(error, context, {
+      category: 'configuration',
+      severity: 'high',
+      actionable: true
+    });
+  },
+
+  /**
+   * Validate API key with detailed feedback
+   * @param {string} apiKey - API key to validate
+   * @param {string} service - Service name
+   * @returns {Object} Validation result with detailed feedback
+   */
+  validateApiKeyWithDetails: (apiKey, service) => {
+    const errors = [];
+    const warnings = [];
+
+    if (!apiKey || apiKey.trim() === '') {
+      errors.push({
+        code: 'MISSING_API_KEY',
+        message: `API key is required for ${service}`,
+        severity: 'high'
+      });
+    } else if (apiKey === 'your_api_key_here' || apiKey.includes('placeholder')) {
+      errors.push({
+        code: 'PLACEHOLDER_KEY',
+        message: `Please replace the placeholder API key for ${service}`,
+        severity: 'high'
+      });
+    } else {
+      // Basic format validation without exposing the key
+      if (service === 'gemini' && !apiKey.startsWith('AIza')) {
+        errors.push({
+          code: 'INVALID_FORMAT',
+          message: `Invalid API key format for ${service}`,
+          severity: 'high'
+        });
+      } else if (service === 'openai' && !apiKey.startsWith('sk-')) {
+        errors.push({
+          code: 'INVALID_FORMAT',
+          message: `Invalid API key format for ${service}`,
+          severity: 'high'
+        });
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      service
+    };
+  },
+
+  /**
+   * Create user-friendly error message
+   * @param {Object} errorInfo - Error information object
+   * @returns {string} User-friendly message
+   */
+  createUserFriendlyMessage: (errorInfo) => {
+    let message = errorInfo.userMessage || errorInfo.message || 'An error occurred';
+
+    if (errorInfo.category === 'configuration') {
+      message += '\n\nPlease check your API key format and configuration.';
+    }
+
+    if (errorInfo.suggestions && errorInfo.suggestions.length > 0) {
+      message += `\n\nSuggestions:\n${  errorInfo.suggestions.map(s => `• ${s}`).join('\n')}`;
+    }
+
+    return message;
+  },
+
+  /**
+   * Error categories for classification
+   */
+  ErrorCategories: {
+    VALIDATION: 'validation',
+    CONFIGURATION: 'configuration',
+    NETWORK: 'network',
+    AUTHENTICATION: 'authentication',
+    AUTHORIZATION: 'authorization',
+    SYSTEM: 'system'
+  },
+
+  /**
+   * Error severity levels
+   */
+  ErrorSeverity: {
+    LOW: 'low',
+    MEDIUM: 'medium',
+    HIGH: 'high',
+    CRITICAL: 'critical'
+  },
+
+  /**
+   * Create recovery action for errors
+   * @param {Object} errorInfo - Error information object
+   * @returns {Object} Recovery action information
+   */
+  createRecoveryAction: (errorInfo) => {
+    const canRecover = errorInfo.category !== 'system' && errorInfo.severity !== 'critical';
+
+    const actions = [];
+
+    // Add category-specific recovery actions
+    switch (errorInfo.category) {
+      case 'configuration':
+        actions.push({
+          type: 'check_config',
+          label: 'Check Configuration',
+          description: 'Verify your configuration settings',
+          priority: 'high'
+        });
+        break;
+      case 'validation':
+        actions.push({
+          type: 'fix_validation',
+          label: 'Fix Validation Errors',
+          description: 'Correct the validation errors and try again',
+          priority: 'high'
+        });
+        break;
+      case 'network':
+        actions.push({
+          type: 'retry',
+          label: 'Retry Request',
+          description: 'Try the request again',
+          priority: 'medium'
+        });
+        break;
+      default:
+        actions.push({
+          type: 'generic_retry',
+          label: 'Try Again',
+          description: 'Retry the operation',
+          priority: 'medium'
+        });
+    }
+
+    return {
+      canRecover,
+      actions,
+      autoRetry: errorInfo.canRetry || false,
+      retryDelay: errorInfo.isTemporary ? 5000 : 0
     };
   }
 };

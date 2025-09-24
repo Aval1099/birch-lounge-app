@@ -106,7 +106,7 @@ describe('RecipeModal Component', () => {
   });
 
   it('validates required fields', async () => {
-    const user = userEvent.setup();
+    const _user = userEvent.setup();
     const mockOnClose = vi.fn();
 
     renderWithProviders(

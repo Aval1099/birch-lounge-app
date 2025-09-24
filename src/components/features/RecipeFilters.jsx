@@ -1,10 +1,11 @@
-/* eslint-disable unused-imports/no-unused-imports */
+
 import { GitCompare, Search, Star, X } from 'lucide-react';
 import React, { memo, useCallback } from 'react';
 
-import { ActionType, BASE_SPIRITS, FLAVOR_PROFILES } from '../../constants';
+import { ActionType, BASE_SPIRITS, FLAVOR_PROFILES, ALCOHOL_CONTENT_TYPES } from '../../constants';
 import { useDebouncedSearch } from '../../hooks';
 import { useApp } from '../../hooks/useApp';
+import { useSearchPerformance } from '../../hooks/usePerformanceMonitoring';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -15,6 +16,7 @@ import Select from '../ui/Select';
 const RecipeFilters = memo(() => {
   const { state, dispatch } = useApp();
   const { filters, comparison } = state;
+  const { measureSearchCall } = useSearchPerformance();
 
   // Debounced search to improve performance
   const {
@@ -28,12 +30,15 @@ const RecipeFilters = memo(() => {
   // Update global search term when debounced value changes
   React.useEffect(() => {
     if (debouncedSearchTerm !== filters.searchTerm) {
-      dispatch({
-        type: ActionType.UPDATE_FILTERS,
-        payload: { searchTerm: debouncedSearchTerm }
+      // Measure search performance
+      measureSearchCall(() => {
+        dispatch({
+          type: ActionType.UPDATE_FILTERS,
+          payload: { searchTerm: debouncedSearchTerm }
+        });
       });
     }
-  }, [debouncedSearchTerm, filters.searchTerm, dispatch]);
+  }, [debouncedSearchTerm, filters.searchTerm, dispatch, measureSearchCall]);
 
   const handleCategoryChange = useCallback((e) => {
     dispatch({
@@ -46,6 +51,13 @@ const RecipeFilters = memo(() => {
     dispatch({
       type: ActionType.UPDATE_FILTERS,
       payload: { flavorProfile: e.target.value }
+    });
+  }, [dispatch]);
+
+  const handleAlcoholContentChange = useCallback((e) => {
+    dispatch({
+      type: ActionType.UPDATE_FILTERS,
+      payload: { alcoholContent: e.target.value }
     });
   }, [dispatch]);
 
@@ -70,6 +82,7 @@ const RecipeFilters = memo(() => {
         searchTerm: '',
         category: 'All',
         flavorProfile: 'All',
+        alcoholContent: 'All',
         favoritesOnly: false
       }
     });
@@ -80,6 +93,7 @@ const RecipeFilters = memo(() => {
     filters.searchTerm ||
     filters.category !== 'All' ||
     filters.flavorProfile !== 'All' ||
+    filters.alcoholContent !== 'All' ||
     filters.favoritesOnly;
 
   return (
@@ -118,7 +132,7 @@ const RecipeFilters = memo(() => {
         </div>
 
         {/* Filter Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Category Filter */}
           <Select
             label="Category"
@@ -146,6 +160,18 @@ const RecipeFilters = memo(() => {
                 {flavor.charAt(0).toUpperCase() + flavor.slice(1)}
               </option>
             ))}
+          </Select>
+
+          {/* Alcohol Content Filter */}
+          <Select
+            label="Alcohol Content"
+            value={filters.alcoholContent}
+            onChange={handleAlcoholContentChange}
+            aria-label="Filter by alcohol content"
+          >
+            <option value="All">All Drinks</option>
+            <option value="alcoholic">Alcoholic</option>
+            <option value="non_alcoholic">Non-Alcoholic</option>
           </Select>
 
           {/* Action Buttons */}

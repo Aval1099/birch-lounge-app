@@ -17,13 +17,22 @@ dist
 dist-ssr
 build
 
-# Environment files
+# Environment files - CRITICAL: Never commit these!
 .env
 .env.local
+.env.development
 .env.development.local
-.env.test.local
+.env.staging
+.env.staging.local
+.env.production
 .env.production.local
+.env.test
+.env.test.local
 *.local
+*.env
+.env.*
+!.env.example
+!.env.example.secure
 
 # Editor directories and files
 .vscode/*
@@ -73,3 +82,43 @@ ehthumbs.db
 yarn.lock
 package-lock.json
 pnpm-lock.yaml
+
+# Security files - NEVER commit these!
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+secrets/
+credentials/
+keys/
+certs/
+security-audit-report.json
+security-report.json
+vulnerability-report.json
+
+# API keys and tokens - NEVER commit these!
+*api-key*
+*secret*
+*token*
+*password*
+*credential*
+.secrets
+.keys
+.tokens
+
+# Backup files that might contain sensitive data
+*.backup
+*.bak
+*.old
+*.orig
+*.save
+*.swp
+*.tmp
+
+# IDE and editor files that might contain sensitive data
+.vscode/settings.json
+.idea/workspace.xml
+*.sublime-workspace

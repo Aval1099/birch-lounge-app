@@ -1,4 +1,4 @@
-/* eslint-disable unused-imports/no-unused-imports */
+ 
 import { Beer, CheckSquare, Edit3, Package, Plus, Search, ShoppingCart, Square, Trash2, Wine, X, Zap } from 'lucide-react';
 import { memo, useCallback, useMemo, useState } from 'react';
 

@@ -309,9 +309,9 @@ describe('Advanced Search & Discovery Integration Tests', () => {
 });
 
 // Helper function for hook testing (would normally import from testing library)
-const renderHook = (hook) => {
+const _renderHook = (hook) => {
   let result;
-  const TestComponent = () => {
+  const _TestComponent = () => {
     result = hook();
     return null;
   };

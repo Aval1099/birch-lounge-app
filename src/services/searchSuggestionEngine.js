@@ -10,23 +10,23 @@
 const POPULAR_SEARCH_TERMS = [
   // Spirits
   'gin cocktails', 'vodka drinks', 'whiskey cocktails', 'rum drinks', 'tequila cocktails',
-  
+
   // Styles
   'classic cocktails', 'modern cocktails', 'tropical drinks', 'simple cocktails',
   'strong cocktails', 'light cocktails', 'refreshing drinks', 'warming cocktails',
-  
+
   // Occasions
   'party cocktails', 'formal cocktails', 'brunch cocktails', 'dinner cocktails',
   'casual drinks', 'date night cocktails', 'celebration drinks',
-  
+
   // Seasons
   'summer cocktails', 'winter cocktails', 'spring cocktails', 'fall cocktails',
   'hot weather drinks', 'cold weather cocktails',
-  
+
   // Flavors
   'sweet cocktails', 'sour cocktails', 'bitter cocktails', 'fruity cocktails',
   'citrus cocktails', 'herbal cocktails', 'spicy cocktails',
-  
+
   // Specific ingredients
   'lime cocktails', 'lemon cocktails', 'mint cocktails', 'ginger cocktails',
   'coffee cocktails', 'chocolate cocktails', 'berry cocktails'
@@ -57,7 +57,7 @@ const SEASONAL_TRENDING = {
 /**
  * Common search patterns and templates
  */
-const SEARCH_PATTERNS = [
+const _SEARCH_PATTERNS = [
   '{spirit} cocktails',
   '{flavor} {spirit} drinks',
   '{occasion} cocktails',
@@ -179,7 +179,7 @@ const generatePatternSuggestions = (query) => {
   const matchedSpirit = spirits.find(spirit => spirit.includes(query) || query.includes(spirit));
   const matchedFlavor = flavors.find(flavor => flavor.includes(query) || query.includes(flavor));
   const matchedOccasion = occasions.find(occasion => occasion.includes(query) || query.includes(occasion));
-  const matchedSeason = seasons.find(season => season.includes(query) || query.includes(season));
+  const _matchedSeason = seasons.find(season => season.includes(query) || query.includes(season));
 
   // Generate suggestions based on matches
   if (matchedSpirit) {

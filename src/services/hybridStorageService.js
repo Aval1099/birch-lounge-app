@@ -17,7 +17,7 @@ export const hybridStorageService = {
     try {
       // Initialize sync service
       await syncService.init();
-      console.log('✅ Hybrid storage service initialized');
+      // Hybrid storage service initialized
     } catch (error) {
       console.warn('⚠️ Hybrid storage init failed, falling back to localStorage only:', error);
     }
@@ -32,7 +32,7 @@ export const hybridStorageService = {
     try {
       // Always save locally first (offline-first)
       const localSuccess = storageService.save(data);
-      
+
       if (!localSuccess) {
         console.error('Failed to save data locally');
         return false;
@@ -77,10 +77,17 @@ export const hybridStorageService = {
     try {
       // Clear local data
       const localSuccess = storageService.clearAllData();
-      
-      // TODO: Add cloud data clearing when user wants to reset everything
-      // For now, we'll just clear local data
-      
+
+      // Clear cloud data if sync service is available
+      try {
+        if (syncService && typeof syncService.clearAllData === 'function') {
+          await syncService.clearAllData();
+        }
+      } catch (cloudError) {
+        console.warn('Failed to clear cloud data, local data cleared successfully:', cloudError);
+        // Don't fail the operation if cloud clearing fails
+      }
+
       return localSuccess;
     } catch (error) {
       console.error('Failed to clear data:', error);
@@ -95,7 +102,7 @@ export const hybridStorageService = {
   getUsageInfo: () => {
     const localUsage = storageService.getUsageInfo();
     const syncStatus = syncService.getSyncStatus();
-    
+
     return {
       ...localUsage,
       sync: syncStatus

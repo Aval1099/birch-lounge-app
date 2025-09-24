@@ -1,0 +1,45 @@
+{
+  "mcpServers": {
+    "code-analysis": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-code-analysis.js"
+      ],
+      "env": {
+        "PROJECT_PATH": "C:\\Users\\asava\\OneDrive\\Desktop\\birch-lounge-app",
+        "ANALYSIS_DEPTH": "deep"
+      }
+    },
+    "test-automation": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-test-automation.js"
+      ],
+      "env": {
+        "TEST_FRAMEWORK": "vitest",
+        "BROWSER": "chromium",
+        "HEADLESS": "true"
+      }
+    },
+    "performance-monitor": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-performance.js"
+      ],
+      "env": {
+        "MONITOR_INTERVAL": "30",
+        "METRICS_ENABLED": "true"
+      }
+    },
+    "doc-generator": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-documentation.js"
+      ],
+      "env": {
+        "OUTPUT_FORMAT": "markdown",
+        "INCLUDE_EXAMPLES": "true"
+      }
+    }
+  }
+}

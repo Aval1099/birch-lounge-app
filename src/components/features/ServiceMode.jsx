@@ -1,10 +1,18 @@
 
-import { memo, useCallback, useMemo, useState } from 'react';
+import {
+  ChefHat, Clock, DollarSign, Eye, Gauge, Heart, Search, Target, X, Zap
+} from 'lucide-react';
+import { memo, useCallback, useMemo, useState, useEffect } from 'react';
 
 import { ActionType } from '../../constants';
 import { useAdvancedSearch, useSelectors } from '../../hooks';
 import { useApp } from '../../hooks/useApp';
+import { serviceModeOptimizer } from '../../services/serviceModeOptimizer';
 import { formatCurrency } from '../../utils';
+import Badge from '../ui/Badge';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
 
 /**
  * Service Mode Component - Bartender-focused interface for quick recipe access
@@ -14,7 +22,6 @@ const ServiceMode = memo(() => {
   const { serviceMode } = state;
   const { selectFilteredRecipeGroups, calculateRecipeCost } = useSelectors();
   const [selectedRecipe, setSelectedRecipe] = useState(null);
-  const [sortBy, setSortBy] = useState('name');
   const [filterCategory, setFilterCategory] = useState('All');
 
   // Get all recipes for advanced search
@@ -43,8 +50,8 @@ const ServiceMode = memo(() => {
     filters,
     updateFilters,
     clearFilters,
-    sortBy: searchSortBy,
-    setSortBy: setSearchSortBy,
+    sortBy,
+    setSortBy,
     isSearching,
     clearSearch
   } = useAdvancedSearch(allRecipes, searchOptions);
@@ -81,11 +88,25 @@ const ServiceMode = memo(() => {
     return filtered;
   }, [searchedRecipes, filterCategory, sortBy, calculateRecipeCost]);
 
-  const handleToggleServiceMode = useCallback(() => {
+  const handleToggleServiceMode = useCallback(async () => {
+    const newServiceMode = !serviceMode;
+
+    // Update state first
     dispatch({
       type: ActionType.SET_SERVICE_MODE,
-      payload: !serviceMode
+      payload: newServiceMode
     });
+
+    // Enable/disable service mode optimizations
+    try {
+      if (newServiceMode) {
+        await serviceModeOptimizer.enableServiceMode();
+      } else {
+        await serviceModeOptimizer.disableServiceMode();
+      }
+    } catch (error) {
+      console.error('Failed to toggle service mode optimizations:', error);
+    }
   }, [serviceMode, dispatch]);
 
   const handleSelectRecipe = useCallback((recipe) => {
@@ -100,6 +121,30 @@ const ServiceMode = memo(() => {
     const cats = new Set(allRecipes.map(recipe => recipe.category));
     return ['All', ...Array.from(cats).sort()];
   }, [allRecipes]);
+
+  // Initialize service mode optimizations when component mounts
+  useEffect(() => {
+    const initializeOptimizations = async () => {
+      if (serviceMode && !serviceModeOptimizer.isActive()) {
+        try {
+          await serviceModeOptimizer.enableServiceMode();
+        } catch (error) {
+          console.error('Failed to initialize service mode optimizations:', error);
+        }
+      }
+    };
+
+    initializeOptimizations();
+
+    // Cleanup on unmount
+    return () => {
+      if (serviceModeOptimizer.isActive()) {
+        serviceModeOptimizer.disableServiceMode().catch(error => {
+          console.error('Failed to cleanup service mode optimizations:', error);
+        });
+      }
+    };
+  }, [serviceMode]);
 
   if (!serviceMode) {
     return (

@@ -22,7 +22,7 @@ const ResponsiveGrid = memo(({
   gap = 'gap-4',
   ...props
 }) => {
-  const { screenSize } = useMobileDetection();
+  const { screenSize: _screenSize } = useMobileDetection();
 
   // Generate responsive grid classes
   const getGridCols = () => {
@@ -231,9 +231,9 @@ export const ResponsiveModal = memo(({
   children,
   size = 'md',
   height = 'auto',
-  showCloseButton = true,
+  showCloseButton: _showCloseButton = true,
   backdrop = true,
-  swipeToClose = true,
+  swipeToClose: _swipeToClose = true,
   forceDesktop = false,
   forceMobile = false,
   className = '',

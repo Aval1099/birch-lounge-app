@@ -23,7 +23,7 @@ import { ActionType } from '../../constants';
 import { useApp } from '../../hooks/useApp';
 import { apiKeyService } from '../../services/apiKeyService';
 import { geminiService } from '../../services/geminiService';
-import { processPDFRecipeBook } from '../../services/pdfService';
+// Lazy load PDF service to reduce initial bundle size
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -78,6 +78,8 @@ const AIAssistant = memo(() => {
       });
 
       try {
+        // Lazy load PDF service to reduce initial bundle size
+        const { processPDFRecipeBook } = await import('../../services/pdfService');
         const result = await processPDFRecipeBook(file, (progress) => {
           setPdfProcessing(prev => ({
             ...prev,

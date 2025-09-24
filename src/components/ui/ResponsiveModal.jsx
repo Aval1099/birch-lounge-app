@@ -1,18 +1,21 @@
-import { forwardRef } from 'react';
+import { forwardRef, memo } from 'react';
 
 import { useMobileDetection } from '../../hooks';
+
+import BottomSheet from './BottomSheet';
+import Modal from './Modal';
 
 
 /**
  * ResponsiveModal Component - Automatically switches between Modal and BottomSheet
- * 
+ *
  * Features:
  * - Automatic device detection
  * - Seamless switching between modal and bottom sheet
  * - Consistent API for both components
  * - Maintains all functionality of both components
  */
-const ResponsiveModal = forwardRef(({
+const ResponsiveModal = memo(forwardRef(({
   isOpen = false,
   onClose,
   title,
@@ -60,14 +63,14 @@ const ResponsiveModal = forwardRef(({
       title={title}
       size={size}
       showCloseButton={showCloseButton}
-      backdrop={backdrop}
+      closeOnOverlayClick={backdrop}
       className={className}
       {...props}
     >
       {children}
     </Modal>
   );
-});
+}));
 
 ResponsiveModal.displayName = 'ResponsiveModal';
 

@@ -10,6 +10,22 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.js'],
     css: true,
+    // Exclude e2e tests from Vitest (they run with Playwright)
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/e2e/**',
+      '**/*.e2e.{test,spec}.{js,ts,jsx,tsx}'
+    ],
+    // Replace deprecated 'basic' reporter with modern equivalent
+    reporters: [
+      [
+        'default',
+        {
+          summary: false
+        }
+      ]
+    ],
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [

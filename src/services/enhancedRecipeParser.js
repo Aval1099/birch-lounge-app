@@ -78,6 +78,7 @@ const INGREDIENT_STANDARDIZATION = {
 
   // Category classification patterns
   categoryPatterns: {
+    'Mocktail': ['mocktail', 'virgin', 'non-alcoholic', 'alcohol-free', 'zero-proof', 'na cocktail', 'sober', 'dry january'],
     'Whiskey': ['whiskey', 'bourbon', 'rye', 'scotch', 'irish'],
     'Gin': ['gin', 'london dry', 'plymouth'],
     'Vodka': ['vodka', 'potato vodka', 'grain vodka'],
@@ -87,8 +88,7 @@ const INGREDIENT_STANDARDIZATION = {
     'Aperitif': ['aperol', 'campari', 'cynar', 'suze'],
     'Digestif': ['amaro', 'fernet', 'chartreuse', 'benedictine'],
     'Wine': ['wine', 'champagne', 'prosecco', 'sherry'],
-    'Beer': ['beer', 'lager', 'ale', 'stout'],
-    'Non-Alcoholic': ['mocktail', 'virgin', 'non-alcoholic', 'alcohol-free']
+    'Beer': ['beer', 'lager', 'ale', 'stout']
   }
 };
 
@@ -177,13 +177,13 @@ export const parseRecipesWithIntelligence = async (text, progressCallback) => {
 const createEnhancedParsingPrompt = (text) => {
   return `
     You are an expert bartender and recipe parser. Extract cocktail recipes from the following text, which may be in various formats:
-    
+
     1. STRUCTURED FORMAT: Clear recipe cards with organized sections
     2. NARRATIVE FORMAT: Recipes described in paragraph form
     3. INGREDIENT LIST FORMAT: Simple lists with measurements
-    
+
     For each recipe found, return a JSON object with this EXACT structure:
-    
+
     {
       "name": "Recipe Name",
       "version": "Classic/House/Modern/etc",
@@ -212,7 +212,7 @@ const createEnhancedParsingPrompt = (text) => {
       "season": "Spring/Summer/Fall/Winter/Year-round",
       "occasion": "Casual/Formal/Party/Digestif"
     }
-    
+
     IMPORTANT PARSING RULES:
     - Standardize ingredient names (e.g., "bourbon whiskey" → "whiskey")
     - Convert all measurements to oz when possible
@@ -221,10 +221,10 @@ const createEnhancedParsingPrompt = (text) => {
     - Assign difficulty based on technique complexity
     - Only extract complete recipes with ingredients AND instructions
     - Skip incomplete entries or non-recipe content
-    
+
     Text to analyze:
     ${text}
-    
+
     Return ONLY a JSON array of recipe objects, no additional text.
   `;
 };
@@ -374,6 +374,45 @@ export const classifyRecipeCategory = (recipe) => {
 };
 
 /**
+ * Determine if a recipe is alcoholic or non-alcoholic
+ */
+export const getRecipeAlcoholContent = (recipe) => {
+  const ingredients = recipe.ingredients || [];
+
+  // Check if explicitly marked as mocktail
+  if (recipe.category?.toLowerCase() === 'mocktail') {
+    return 'non_alcoholic';
+  }
+
+  // Check for alcoholic ingredients
+  const alcoholicCategories = [
+    'whiskey', 'gin', 'rum', 'vodka', 'tequila', 'brandy', 'wine', 'beer',
+    'cordials/liqueur', 'amari', 'aperitif', 'digestif'
+  ];
+
+  const hasAlcohol = ingredients.some(ingredient => {
+    const name = ingredient.name.toLowerCase();
+    const category = ingredient.category?.toLowerCase() || '';
+
+    // Check ingredient category
+    if (alcoholicCategories.includes(category)) {
+      return true;
+    }
+
+    // Check ingredient name for alcohol indicators
+    const alcoholKeywords = [
+      'whiskey', 'bourbon', 'rye', 'scotch', 'gin', 'vodka', 'rum', 'tequila',
+      'wine', 'beer', 'brandy', 'cognac', 'liqueur', 'amaro', 'aperol', 'campari',
+      'vermouth', 'sherry', 'port', 'champagne', 'prosecco'
+    ];
+
+    return alcoholKeywords.some(keyword => name.includes(keyword));
+  });
+
+  return hasAlcohol ? 'alcoholic' : 'non_alcoholic';
+};
+
+/**
  * Calculate estimated ABV
  */
 export const calculateABV = (ingredients) => {
@@ -414,9 +453,9 @@ const splitTextIntoChunks = (text, maxChunkSize) => {
   for (const sentence of sentences) {
     if ((currentChunk + sentence).length > maxChunkSize && currentChunk.length > 0) {
       chunks.push(currentChunk.trim());
-      currentChunk = `${sentence  }. `;
+      currentChunk = `${sentence}. `;
     } else {
-      currentChunk += `${sentence  }. `;
+      currentChunk += `${sentence}. `;
     }
   }
 

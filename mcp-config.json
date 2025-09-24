@@ -1,0 +1,64 @@
+{
+  "mcpServers": {
+    "birch-lounge-web-fetch": {
+      "command": "node",
+      "args": ["src/services/mcpWebFetchService.js"],
+      "env": {
+        "WEB_FETCH_ALLOWED_DOMAINS": "liquor.com,diffordsguide.com,punchdrink.com,cocktaildb.com,thespruceeats.com",
+        "WEB_FETCH_RATE_LIMIT": "30"
+      }
+    },
+    "birch-lounge-excel": {
+      "command": "node",
+      "args": ["src/services/mcpExcelService.js"],
+      "env": {
+        "EXCEL_EXPORT_DIR": "./data/exports",
+        "EXCEL_IMPORT_DIR": "./data/imports"
+      }
+    },
+    "birch-lounge-database": {
+      "command": "node",
+      "args": ["src/services/mcpDatabaseService.js"],
+      "env": {
+        "DATABASE_URL": "postgresql://localhost:5432/birch_lounge_analytics",
+        "DB_POOL_MIN": "2",
+        "DB_POOL_MAX": "10"
+      }
+    },
+    "birch-lounge-search": {
+      "command": "node",
+      "args": ["src/services/mcpSearchService.js"],
+      "env": {
+        "EXA_API_KEY": "your_exa_api_key_here",
+        "SEARCH_RATE_LIMIT": "100",
+        "SEARCH_CACHE_TTL": "3600"
+      }
+    },
+    "birch-lounge-notion": {
+      "command": "node",
+      "args": ["src/services/mcpNotionService.js"],
+      "env": {
+        "NOTION_API_KEY": "your_notion_api_key_here",
+        "NOTION_DATABASE_ID": "your_notion_database_id_here"
+      }
+    },
+    "birch-lounge-github": {
+      "command": "node",
+      "args": ["src/services/mcpGitHubService.js"],
+      "env": {
+        "GITHUB_TOKEN": "your_github_personal_access_token_here",
+        "GITHUB_OWNER": "your_github_username_here",
+        "GITHUB_REPO": "birch-lounge-recipes"
+      }
+    },
+    "birch-lounge-openai": {
+      "command": "node",
+      "args": ["src/services/mcpOpenAIService.js"],
+      "env": {
+        "OPENAI_API_KEY": "your_openai_api_key_here",
+        "OPENAI_MODEL": "gpt-4",
+        "OPENAI_MAX_TOKENS": "2000"
+      }
+    }
+  }
+}

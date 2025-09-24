@@ -2,7 +2,7 @@
 // MOBILE NAVIGATION COMPONENT
 // =============================================================================
 
-/* eslint-disable unused-imports/no-unused-imports */
+
 import { ChefHat, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
@@ -19,7 +19,7 @@ import Button from './Button';
 const MobileNavigation = memo(({ tabs = [] }) => {
   const { state, dispatch } = useApp();
   const { activeTab } = state;
-  const { isMobile, screenSize } = useMobileDetection();
+  const { isMobile, screenSize: _screenSize } = useMobileDetection();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
 

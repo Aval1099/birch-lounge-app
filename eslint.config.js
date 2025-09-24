@@ -2,13 +2,14 @@ import js from '@eslint/js'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import importPlugin from 'eslint-plugin-import'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
+import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import unusedImports from 'eslint-plugin-unused-imports'
 import globals from 'globals'
 
 export default defineConfig([
-  globalIgnores(['dist', 'storybook-static', 'coverage', 'node_modules']),
+  globalIgnores(['dist', 'storybook-static', 'coverage', 'node_modules', '**/*.ts', '**/*.tsx', '**/*.d.ts', 'e2e/**/*']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -31,14 +32,15 @@ export default defineConfig([
     },
     plugins: {
       'jsx-a11y': jsxA11y,
-      'import': importPlugin,
+      import: importPlugin,
+      react,
       'unused-imports': unusedImports,
     },
     rules: {
       // Enhanced rules for better code quality
       'no-unused-vars': 'off', // Handled by unused-imports
-      // Changed from 'error' to 'warn' to prevent auto-deletion of JSX-used imports
-      'unused-imports/no-unused-imports': 'warn',
+      // Completely disable unused imports rule to prevent auto-deletion of JSX-used imports
+      'unused-imports/no-unused-imports': 'off',
       'unused-imports/no-unused-vars': [
         'warn',
         {
@@ -48,6 +50,8 @@ export default defineConfig([
           argsIgnorePattern: '^_',
           // Ignore React components and JSX-related imports
           ignoreRestSiblings: true,
+          // Don't report unused variables that might be used in JSX
+          caughtErrors: 'none',
         },
       ],
 
@@ -88,8 +92,8 @@ export default defineConfig([
       'prefer-template': 'error',
 
       // React/JSX specific rules to prevent false positives
-      'react/jsx-uses-react': 'off', // Not needed in React 17+
-      'react/jsx-uses-vars': 'off',  // Not needed in React 17+
+      'react/jsx-uses-react': 'error', // Enable to detect JSX usage
+      'react/jsx-uses-vars': 'error',  // Enable to detect variables used in JSX
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
     },
   },

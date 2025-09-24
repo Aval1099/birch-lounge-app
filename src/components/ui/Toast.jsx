@@ -1,4 +1,4 @@
-/* eslint-disable unused-imports/no-unused-imports */
+ 
 import { AlertCircle, AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 
@@ -13,6 +13,16 @@ const Toast = memo(() => {
   const { notification } = state;
   const [isVisible, setIsVisible] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => {
+      dispatch({
+        type: ActionType.SET_NOTIFICATION,
+        payload: { message: null, type: null }
+      });
+    }, 300); // Wait for animation
+  }, [dispatch]);
+
   useEffect(() => {
     if (notification.message) {
       setIsVisible(true);
@@ -25,16 +35,6 @@ const Toast = memo(() => {
       return () => clearTimeout(timer);
     }
   }, [notification.message, handleClose]);
-
-  const handleClose = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => {
-      dispatch({
-        type: ActionType.SET_NOTIFICATION,
-        payload: { message: null, type: null }
-      });
-    }, 300); // Wait for animation
-  }, [dispatch]);
 
   if (!notification.message) return null;
 

@@ -21,10 +21,10 @@ export const syncService = {
     // Listen for online/offline events
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     // Load sync queue from localStorage
     syncQueue = JSON.parse(localStorage.getItem('syncQueue') || '[]');
-    
+
     // Initial sync if online and configured
     if (isOnline && isSupabaseConfigured()) {
       await syncService.syncToCloud();
@@ -39,7 +39,7 @@ export const syncService = {
   save: async (data) => {
     // Always save locally first (offline-first)
     const localSaveSuccess = storageService.save(data);
-    
+
     if (!localSaveSuccess) {
       return false;
     }
@@ -59,7 +59,7 @@ export const syncService = {
   load: async () => {
     // Always try local first (offline-first)
     const localData = storageService.load();
-    
+
     // If no local data and we're online, try cloud
     if (!localData && isOnline && isSupabaseConfigured()) {
       try {
@@ -81,8 +81,14 @@ export const syncService = {
    * Sync local data to cloud
    */
   syncToCloud: async () => {
-    if (!isSupabaseConfigured() || !isOnline || syncInProgress) {
-      return;
+    // Check preconditions
+    if (!isSupabaseConfigured() || !isOnline) {
+      return { success: false, error: 'Sync not available' };
+    }
+
+    // Prevent concurrent sync operations
+    if (syncInProgress) {
+      return { success: false, error: 'Sync already in progress' };
     }
 
     syncInProgress = true;
@@ -90,8 +96,8 @@ export const syncService = {
     try {
       const user = await getCurrentUser();
       if (!user) {
-        console.log('No user logged in, skipping cloud sync');
-        return;
+        console.warn('No user logged in, skipping cloud sync');
+        return { success: false, error: 'User not authenticated' };
       }
 
       // Process sync queue
@@ -103,9 +109,13 @@ export const syncService = {
         await saveToCloud(localData, user.id);
       }
 
+      return { success: true };
+
     } catch (error) {
       console.error('Cloud sync failed:', error);
+      return { success: false, error: error.message };
     } finally {
+      // Always reset sync flag, even if early return
       syncInProgress = false;
     }
   },
@@ -136,8 +146,8 @@ export const syncService = {
  */
 const handleOnline = async () => {
   isOnline = true;
-  console.log('Connection restored, syncing to cloud...');
-  
+  console.warn('Connection restored, syncing to cloud...');
+
   // Trigger sync after a short delay to ensure connection is stable
   setTimeout(() => {
     syncService.syncToCloud();
@@ -149,7 +159,7 @@ const handleOnline = async () => {
  */
 const handleOffline = () => {
   isOnline = false;
-  console.log('Connection lost, switching to offline mode');
+  console.warn('Connection lost, switching to offline mode');
 };
 
 /**
@@ -166,7 +176,7 @@ const queueForSync = async (operation, data) => {
   };
 
   syncQueue.push(syncItem);
-  
+
   // Persist queue to localStorage
   localStorage.setItem('syncQueue', JSON.stringify(syncQueue));
 
@@ -234,7 +244,7 @@ const saveToCloud = async (data, userId) => {
 
     if (error) throw error;
 
-    console.log('Data synced to cloud successfully');
+    console.warn('Data synced to cloud successfully');
   } catch (error) {
     console.error('Failed to save to cloud:', error);
     throw error;

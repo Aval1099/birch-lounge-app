@@ -2,9 +2,13 @@
 // AUTHENTICATION MODAL COMPONENT
 // =============================================================================
 
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, X } from 'lucide-react';
 import { useState, memo } from 'react';
 
 import { signIn, signUp, isSupabaseConfigured } from '../../services/supabaseClient';
+import Button from '../ui/Button';
+import Input from '../ui/Input';
+import ResponsiveModal from '../ui/ResponsiveModal';
 
 /**
  * Authentication Modal Component
@@ -61,7 +65,7 @@ const AuthModal = memo(({ isOpen, onClose, onAuthSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -69,7 +73,7 @@ const AuthModal = memo(({ isOpen, onClose, onAuthSuccess }) => {
 
     try {
       let result;
-      
+
       if (mode === 'signin') {
         result = await signIn(formData.email, formData.password);
       } else {
@@ -110,8 +114,8 @@ const AuthModal = memo(({ isOpen, onClose, onAuthSuccess }) => {
               {mode === 'signin' ? 'Sign In' : 'Create Account'}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {mode === 'signin' 
-                ? 'Access your recipes across devices' 
+              {mode === 'signin'
+                ? 'Access your recipes across devices'
                 : 'Create an account to sync your recipes'
               }
             </p>

@@ -244,10 +244,10 @@ describe('AIAssistant PDF Upload Functionality', () => {
 
   it('shows processing progress during PDF upload', async () => {
     const user = userEvent.setup();
-    let progressCallback;
+    let _progressCallback;
 
     processPDFRecipeBook.mockImplementation((file, callback) => {
-      progressCallback = callback;
+      _progressCallback = callback;
       return new Promise(resolve => {
         setTimeout(() => {
           // Simulate progress updates

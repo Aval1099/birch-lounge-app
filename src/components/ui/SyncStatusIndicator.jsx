@@ -2,7 +2,7 @@
 // SYNC STATUS INDICATOR COMPONENT
 // =============================================================================
 
-/* eslint-disable unused-imports/no-unused-imports */
+
 import { AlertCircle, Check, Cloud, CloudOff, LogOut, RefreshCw, User, Wifi, WifiOff } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 
@@ -25,20 +25,32 @@ const SyncStatusIndicator = memo(({ onAuthClick, className = '' }) => {
   const [user, setUser] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  // Update sync status periodically
+  // Update sync status periodically with enhanced feedback
   useEffect(() => {
     const updateStatus = () => {
       if (isSupabaseConfigured()) {
         const status = hybridStorageService.getSyncStatus();
-        setSyncStatus(status);
+        setSyncStatus(prev => ({
+          ...prev,
+          ...status,
+          isOnline: navigator.onLine,
+          lastUpdated: Date.now()
+        }));
+      } else {
+        setSyncStatus(prev => ({
+          ...prev,
+          isOnline: navigator.onLine,
+          isConfigured: false,
+          lastUpdated: Date.now()
+        }));
       }
     };
 
     // Initial update
     updateStatus();
 
-    // Update every 5 seconds
-    const interval = setInterval(updateStatus, 5000);
+    // Update every 2 seconds for more responsive feedback
+    const interval = setInterval(updateStatus, 2000);
 
     // Listen for online/offline events
     const handleOnline = () => updateStatus();

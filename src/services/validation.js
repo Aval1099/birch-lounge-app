@@ -86,7 +86,7 @@ export const validationService = {
 
       // Parse JSON
       const data = JSON.parse(jsonString);
-      
+
       // Validate structure
       const validatedData = {
         recipes: [],
@@ -133,19 +133,19 @@ export const validationService = {
 
       // Simple validation for other data types
       if (Array.isArray(data.savedMenus)) {
-        validatedData.savedMenus = data.savedMenus.filter(menu => 
+        validatedData.savedMenus = data.savedMenus.filter(menu =>
           menu && typeof menu === 'object' && menu.name
         );
       }
 
       if (Array.isArray(data.savedBatches)) {
-        validatedData.savedBatches = data.savedBatches.filter(batch => 
+        validatedData.savedBatches = data.savedBatches.filter(batch =>
           batch && typeof batch === 'object' && batch.name
         );
       }
 
       if (Array.isArray(data.techniques)) {
-        validatedData.techniques = data.techniques.filter(technique => 
+        validatedData.techniques = data.techniques.filter(technique =>
           technique && typeof technique === 'object' && technique.name
         );
       }
@@ -179,7 +179,7 @@ export const validationService = {
    * @param {Object} options - Validation options
    * @returns {Object} Detailed validation result with field-level errors
    */
-  validateImportDataDetailed: (jsonString, options = {}) => {
+  validateImportDataDetailed: (jsonString, _options = {}) => {
     const result = {
       isValid: true,
       errors: [],
@@ -239,7 +239,7 @@ export const validationService = {
         result.errors.push('Root data must be an object');
         result.fieldErrors.push({
           field: 'root',
-          error: `Expected object, got ${  Array.isArray(data) ? 'array' : typeof data}`,
+          error: `Expected object, got ${Array.isArray(data) ? 'array' : typeof data}`,
           suggestion: 'Wrap your data in an object: { "recipes": [...], "ingredients": [...] }'
         });
         return result;
@@ -280,7 +280,7 @@ export const validationService = {
 
     } catch (error) {
       result.isValid = false;
-      result.errors.push(`Unexpected validation error: ${  error.message}`);
+      result.errors.push(`Unexpected validation error: ${error.message}`);
       result.recoveryActions.push({
         type: 'general_error',
         message: 'Contact support if this error persists',
@@ -297,7 +297,7 @@ export const validationService = {
    */
   sanitizeString: (input) => {
     if (typeof input !== 'string') return '';
-    
+
     return input
       .trim()
       .slice(0, validationService.MAX_STRING_LENGTH)
@@ -782,7 +782,7 @@ export const validationService = {
       } catch (error) {
         result.fieldErrors.push({
           field: recipePath,
-          error: `Invalid recipe format: ${  error.message}`,
+          error: `Invalid recipe format: ${error.message}`,
           suggestion: 'Check recipe structure and required fields'
         });
         result.warnings.push(`Recipe ${index + 1}: Invalid format`);
@@ -841,7 +841,7 @@ export const validationService = {
       } catch (error) {
         result.fieldErrors.push({
           field: ingredientPath,
-          error: `Invalid ingredient format: ${  error.message}`,
+          error: `Invalid ingredient format: ${error.message}`,
           suggestion: 'Check ingredient structure and required fields'
         });
         result.warnings.push(`Ingredient ${index + 1}: Invalid format`);
@@ -1224,7 +1224,7 @@ export const validationService = {
 
       // Check if key is stored in environment variables (security best practice)
       const envKey = process.env[`${service.toUpperCase()}_API_KEY`] ||
-                     process.env[`VITE_${service.toUpperCase()}_API_KEY`];
+        process.env[`VITE_${service.toUpperCase()}_API_KEY`];
       if (!envKey) {
         assessment.deductions += 3;
         assessment.issues.push({

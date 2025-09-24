@@ -1,16 +1,24 @@
+import { AlertCircle, Plus, Save, Trash2, X, GitBranch, History, GitCompare } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
-import { AlertCircle, Plus, Save, Trash2, X } from 'lucide-react';
 
-import { ActionType, DIFFICULTY_LEVELS, FLAVOR_PROFILES, INGREDIENT_CATEGORIES_FLAT, UNITS } from '../../constants';
+import { ActionType, BASE_SPIRITS, DIFFICULTY_LEVELS, FLAVOR_PROFILES, UNITS } from '../../constants';
 import { useRecipeAutosave } from '../../hooks';
 import { useApp } from '../../hooks/useApp';
 import { createRecipe, validateRecipe } from '../../models';
+import { recipeVersionService } from '../../services/recipeVersionService';
 import { generateId } from '../../utils';
 import { CompactAutosaveIndicator, DetailedAutosaveIndicator } from '../ui/AutosaveIndicator';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Textarea from '../ui/Textarea';
+
+import {
+  RecipeVersionSelector,
+  VersionComparisonModal,
+  VersionHistoryPanel,
+  CreateVersionModal
+} from './index';
 
 /**
  * Recipe Modal Component - Create/Edit Recipe Form
@@ -46,6 +54,14 @@ const RecipeModal = memo(({ recipe, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
 
+  // Versioning state
+  const [selectedVersionId, setSelectedVersionId] = useState(recipe?.id);
+  const [showCreateVersion, setShowCreateVersion] = useState(false);
+  const [showVersionComparison, setShowVersionComparison] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [comparisonVersions, setComparisonVersions] = useState({ versionA: null, versionB: null });
+  const [versions, setVersions] = useState([]);
+
   // Autosave functionality
   const {
     autosaveStatus,
@@ -62,10 +78,10 @@ const RecipeModal = memo(({ recipe, onClose }) => {
     enabled: true,
     skipInitial: true,
     onSaveStart: () => {
-      console.log('Autosave started');
+      // Autosave started - no logging needed
     },
     onSaveSuccess: () => {
-      console.log('Autosave completed');
+      // Autosave completed - no logging needed
     },
     onSaveError: (error) => {
       console.error('Autosave failed:', error);
@@ -220,6 +236,72 @@ const RecipeModal = memo(({ recipe, onClose }) => {
     }
   }, [forceSave, onClose]);
 
+  // Versioning handlers
+  const handleCreateVersion = useCallback(async (baseRecipe, versionData, branchOptions) => {
+    try {
+      const newVersion = await recipeVersionService.createVersion(
+        baseRecipe,
+        versionData,
+        branchOptions
+      );
+
+      // Update versions list
+      const updatedVersions = await recipeVersionService.getVersions(baseRecipe.recipeFamily);
+      setVersions(updatedVersions);
+
+      // Switch to the new version
+      setSelectedVersionId(newVersion.id);
+
+      // Update form data with new version
+      setFormData(newVersion);
+
+      setShowCreateVersion(false);
+    } catch (error) {
+      console.error('Error creating version:', error);
+    }
+  }, []);
+
+  const handleSelectVersionFromComparison = useCallback((versionId) => {
+    setSelectedVersionId(versionId);
+    setShowVersionComparison(false);
+    // Load the selected version data
+    const selectedVersion = versions.find(v => v.id === versionId);
+    if (selectedVersion) {
+      setFormData(selectedVersion);
+    }
+  }, [versions]);
+
+  const handleSelectVersionFromHistory = useCallback((versionId) => {
+    setSelectedVersionId(versionId);
+    setShowVersionHistory(false);
+    // Load the selected version data
+    const selectedVersion = versions.find(v => v.id === versionId);
+    if (selectedVersion) {
+      setFormData(selectedVersion);
+    }
+  }, [versions]);
+
+  const handleCompareVersionsFromHistory = useCallback((versionAId, versionBId) => {
+    setComparisonVersions({ versionA: versionAId, versionB: versionBId });
+    setShowVersionHistory(false);
+    setShowVersionComparison(true);
+  }, []);
+
+  // Load versions when recipe changes
+  useEffect(() => {
+    if (isEditing && recipe?.recipeFamily) {
+      const loadVersions = async () => {
+        try {
+          const familyVersions = await recipeVersionService.getVersions(recipe.recipeFamily);
+          setVersions(familyVersions);
+        } catch (error) {
+          console.error('Error loading versions:', error);
+        }
+      };
+      loadVersions();
+    }
+  }, [isEditing, recipe?.recipeFamily]);
+
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e) => {
@@ -262,16 +344,66 @@ const RecipeModal = memo(({ recipe, onClose }) => {
               hasUnsavedChanges={hasUnsavedChanges}
               error={autosaveError}
             />
+
+            {/* Version Selector for existing recipes */}
+            {isEditing && recipe?.recipeFamily && (
+              <RecipeVersionSelector
+                recipeFamily={recipe.recipeFamily}
+                selectedVersionId={selectedVersionId}
+                onVersionSelect={setSelectedVersionId}
+                compact={true}
+                showActions={false}
+              />
+            )}
           </div>
-          <Button
-            onClick={handleClose}
-            variant="ghost"
-            className="p-2"
-            disabled={isSubmitting}
-            ariaLabel="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </Button>
+
+          <div className="flex items-center gap-2">
+            {/* Versioning Actions */}
+            {isEditing && (
+              <>
+                <Button
+                  onClick={() => setShowCreateVersion(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <GitBranch className="w-4 h-4" />
+                  New Version
+                </Button>
+
+                <Button
+                  onClick={() => setShowVersionHistory(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <History className="w-4 h-4" />
+                  History
+                </Button>
+
+                <Button
+                  onClick={() => setShowVersionComparison(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  disabled={versions.length < 2}
+                >
+                  <GitCompare className="w-4 h-4" />
+                  Compare
+                </Button>
+              </>
+            )}
+
+            <Button
+              onClick={handleClose}
+              variant="ghost"
+              className="p-2"
+              disabled={isSubmitting}
+              ariaLabel="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Form */}
@@ -317,7 +449,7 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                 required
               >
                 <option value="">Select Category</option>
-                {INGREDIENT_CATEGORIES_FLAT.slice(0, 11).map(category => (
+                {BASE_SPIRITS.filter(spirit => spirit !== 'All').map(category => (
                   <option key={category} value={category}>
                     {category}
                   </option>
@@ -579,6 +711,53 @@ const RecipeModal = memo(({ recipe, onClose }) => {
                   Save & Close
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Versioning Modals */}
+      {showCreateVersion && (
+        <CreateVersionModal
+          isOpen={showCreateVersion}
+          onClose={() => setShowCreateVersion(false)}
+          baseRecipe={recipe}
+          onCreateVersion={handleCreateVersion}
+          existingVersions={versions}
+        />
+      )}
+
+      {showVersionComparison && (
+        <VersionComparisonModal
+          isOpen={showVersionComparison}
+          onClose={() => setShowVersionComparison(false)}
+          versionAId={comparisonVersions.versionA}
+          versionBId={comparisonVersions.versionB}
+          onSelectVersion={handleSelectVersionFromComparison}
+        />
+      )}
+
+      {showVersionHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Version History
+              </h3>
+              <Button
+                onClick={() => setShowVersionHistory(false)}
+                variant="ghost"
+                size="sm"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <VersionHistoryPanel
+                recipeId={recipe?.id}
+                onVersionSelect={handleSelectVersionFromHistory}
+                onCompareVersions={handleCompareVersionsFromHistory}
+              />
             </div>
           </div>
         </div>

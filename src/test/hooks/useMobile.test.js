@@ -1,16 +1,16 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { 
-  useMobileDetection, 
-  useSwipeGesture, 
-  useBreakpoint, 
+import {
+  useMobileDetection,
+  useSwipeGesture,
+  useBreakpoint,
   useTouchInteraction,
-  useViewportHeight 
+  useViewportHeight
 } from '../../hooks/useMobile';
 
 // Mock window properties
-const mockWindow = {
+const _mockWindow = {
   innerWidth: 1024,
   innerHeight: 768,
   addEventListener: vi.fn(),
@@ -80,7 +80,7 @@ describe('useSwipeGesture', () => {
   });
 
   it('should provide touch event handlers', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useSwipeGesture({
         onSwipeLeft: mockOnSwipeLeft,
         onSwipeRight: mockOnSwipeRight
@@ -93,7 +93,7 @@ describe('useSwipeGesture', () => {
   });
 
   it('should detect swipe left', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useSwipeGesture({
         onSwipeLeft: mockOnSwipeLeft,
         threshold: 50
@@ -154,7 +154,7 @@ describe('useTouchInteraction', () => {
   });
 
   it('should provide touch interaction handlers', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useTouchInteraction({
         onTap: mockOnTap,
         onLongPress: mockOnLongPress
@@ -167,7 +167,7 @@ describe('useTouchInteraction', () => {
   });
 
   it('should trigger tap on short touch', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useTouchInteraction({
         onTap: mockOnTap,
         longPressDelay: 500
@@ -194,7 +194,7 @@ describe('useTouchInteraction', () => {
   });
 
   it('should trigger long press on extended touch', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useTouchInteraction({
         onLongPress: mockOnLongPress,
         longPressDelay: 500

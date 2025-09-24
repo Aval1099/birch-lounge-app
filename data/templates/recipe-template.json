@@ -1,0 +1,45 @@
+{
+  "name": "Sample Cocktail",
+  "category": "Classic",
+  "alcoholContent": "alcoholic",
+  "flavorProfile": [
+    "refreshing",
+    "citrusy"
+  ],
+  "ingredients": [
+    {
+      "name": "Gin",
+      "amount": 2,
+      "unit": "oz",
+      "type": "spirit"
+    },
+    {
+      "name": "Lime Juice",
+      "amount": 0.75,
+      "unit": "oz",
+      "type": "citrus"
+    },
+    {
+      "name": "Simple Syrup",
+      "amount": 0.5,
+      "unit": "oz",
+      "type": "sweetener"
+    }
+  ],
+  "instructions": [
+    "Add all ingredients to shaker with ice",
+    "Shake vigorously for 10-15 seconds",
+    "Double strain into chilled coupe glass",
+    "Garnish with lime wheel"
+  ],
+  "garnish": "Lime wheel",
+  "glassware": "Coupe",
+  "servingSize": 1,
+  "preparationTime": 2,
+  "difficulty": "Easy",
+  "tags": [
+    "refreshing",
+    "citrus",
+    "classic"
+  ]
+}

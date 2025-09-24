@@ -26,7 +26,7 @@ describe('useAutosave', () => {
   });
 
   it('should initialize with correct default state', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useAutosave({ name: 'test' }, mockSaveFunction)
     );
 
@@ -54,7 +54,7 @@ describe('useAutosave', () => {
 
   it('should trigger autosave after delay when data changes', async () => {
     const initialData = { name: 'test' };
-    const { result, rerender } = renderHook(
+    const { result: _result, rerender } = renderHook(
       ({ data }) => useAutosave(data, mockSaveFunction, { delay: 100, skipInitial: false }),
       { initialProps: { data: initialData } }
     );
@@ -110,7 +110,7 @@ describe('useAutosave', () => {
   });
 
   it('should reset autosave state', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useAutosave({ name: 'test' }, mockSaveFunction)
     );
 
@@ -165,10 +165,10 @@ describe('useRecipeAutosave', () => {
       isDraft: true,
       lastModified: Date.now()
     };
-    
+
     localStorageMock.getItem.mockReturnValue(JSON.stringify(draftData));
 
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useRecipeAutosave(mockRecipeData, mockRecipeData.id)
     );
 
@@ -178,7 +178,7 @@ describe('useRecipeAutosave', () => {
   });
 
   it('should clear draft from localStorage', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useRecipeAutosave(mockRecipeData, mockRecipeData.id)
     );
 
@@ -192,7 +192,7 @@ describe('useRecipeAutosave', () => {
   it('should check if draft exists', () => {
     localStorageMock.getItem.mockReturnValue('{"name":"Draft"}');
 
-    const { result } = renderHook(() => 
+    const { result } = renderHook(() =>
       useRecipeAutosave(mockRecipeData, mockRecipeData.id)
     );
 

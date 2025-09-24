@@ -1,7 +1,10 @@
 import { render } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { ErrorBoundary } from '../../components/ui';
 import { AppProvider } from '../../context/AppContext';
+
+
 
 // Custom render function that includes providers
 export const renderWithProviders = (ui, options = {}) => {

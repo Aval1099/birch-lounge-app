@@ -41,7 +41,7 @@ const mockState = {
   geminiApiKey: 'test-api-key'
 };
 
-const mockStateWithMessages = {
+const _mockStateWithMessages = {
   ...mockState,
   aiMessages: [
     {
@@ -118,7 +118,7 @@ describe('AIAssistant Component', () => {
   });
 
   it('prevents sending empty messages', async () => {
-    const user = userEvent.setup();
+    const _user = userEvent.setup();
 
     const { getByRole } = renderWithProviders(
       <AIAssistant />,
@@ -258,7 +258,7 @@ describe('AIAssistant Component', () => {
   it('handles PDF file upload', async () => {
     const user = userEvent.setup();
 
-    const { getByText, getByLabelText } = renderWithProviders(
+    const { getByText: _getByText, getByLabelText } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
@@ -275,7 +275,7 @@ describe('AIAssistant Component', () => {
   it('processes PDF file upload', async () => {
     const user = userEvent.setup();
 
-    const { getByLabelText, getByText } = renderWithProviders(
+    const { getByLabelText, getByText: _getByText } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );
@@ -315,7 +315,7 @@ describe('AIAssistant Component', () => {
 
   it('handles drag and drop for PDF files', async () => {
     const user = userEvent.setup();
-    const { container, getByLabelText, getByTestId } = renderWithProviders(
+    const { container: _container, getByLabelText, getByTestId } = renderWithProviders(
       <AIAssistant />,
       { initialState: mockState }
     );

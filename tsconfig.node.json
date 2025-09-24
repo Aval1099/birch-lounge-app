@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node"
+    ],
+    "allowJs": true,
+    "outDir": "dist/node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false
+  },
+  "include": [
+    "vite.config.js",
+    "vitest.config.js",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "eslint.config.js",
+    "commitlint.config.js",
+    "scripts/**/*"
+  ]
+}

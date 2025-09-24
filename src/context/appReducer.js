@@ -7,6 +7,7 @@ import { getInitialIngredients, getInitialRecipes, getInitialTechniques } from '
 import { validateRecipe, createIngredient } from '../models';
 import { storageService } from '../services/storageService';
 import { safeParseInt } from '../utils';
+import { getInitialMocktails } from '../utils/mocktailUtils';
 
 // Initial application state
 export const initialAppState = {
@@ -18,9 +19,9 @@ export const initialAppState = {
     type: null,
     data: null
   },
-  notification: { 
-    message: null, 
-    type: null 
+  notification: {
+    message: null,
+    type: null
   },
   recipes: [],
   ingredients: [],
@@ -29,6 +30,7 @@ export const initialAppState = {
     searchTerm: '',
     category: 'All',
     flavorProfile: 'All',
+    alcoholContent: 'All',
     favoritesOnly: false
   },
   comparison: {
@@ -63,10 +65,13 @@ export const appReducer = (state, action) => {
       // Note: We'll load data asynchronously in the AppProvider
       // This action just sets up the initial state structure
       const savedData = storageService.load(); // Fallback to localStorage for immediate load
+      const existingRecipes = savedData?.recipes || getInitialRecipes();
+      const mocktails = getInitialMocktails(existingRecipes);
+
       return {
         ...initialAppState,
         ...(savedData || {}),
-        recipes: savedData?.recipes || getInitialRecipes(),
+        recipes: [...existingRecipes, ...mocktails],
         ingredients: savedData?.ingredients || getInitialIngredients(),
         techniques: savedData?.techniques || getInitialTechniques(),
         savedBatches: savedData?.savedBatches || [],
@@ -145,7 +150,7 @@ export const appReducer = (state, action) => {
     case ActionType.SAVE_RECIPE: {
       const recipe = action.payload;
       const { isValid, errors } = validateRecipe(recipe);
-      
+
       if (!isValid) {
         return {
           ...state,
@@ -157,7 +162,7 @@ export const appReducer = (state, action) => {
       }
 
       const recipeExists = state.recipes.some(r => r.id === recipe.id);
-      
+
       return {
         ...state,
         notification: { message: null, type: null },
@@ -185,7 +190,7 @@ export const appReducer = (state, action) => {
 
     case ActionType.SAVE_INGREDIENT: {
       const ingredient = createIngredient(action.payload);
-      
+
       if (!ingredient.name) {
         return {
           ...state,
@@ -198,7 +203,7 @@ export const appReducer = (state, action) => {
 
       const ingredientExists = state.ingredients.some(i => i.id === ingredient.id);
       const nameCollision = state.ingredients.some(i =>
-        i.name.toLowerCase() === ingredient.name.toLowerCase() && 
+        i.name.toLowerCase() === ingredient.name.toLowerCase() &&
         i.id !== ingredient.id
       );
 
@@ -243,7 +248,7 @@ export const appReducer = (state, action) => {
     case ActionType.TOGGLE_COMPARE_SELECTION: {
       const id = action.payload;
       const currentIds = state.comparison.selectedIds;
-      
+
       let newIds;
       if (currentIds.includes(id)) {
         newIds = currentIds.filter(i => i !== id);
@@ -276,13 +281,13 @@ export const appReducer = (state, action) => {
 
     case ActionType.ADD_RECIPE_TO_MENU: {
       const { menuId, recipe } = action.payload;
-      
+
       if (menuId === 'current') {
         // Check if recipe already exists in current menu
         if (state.currentMenu.items.some(i => i.id === recipe.id)) {
           return state;
         }
-        
+
         return {
           ...state,
           currentMenu: {
