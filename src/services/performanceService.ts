@@ -99,7 +99,9 @@ class PerformanceMonitor implements PerformanceMonitoringService {
       this.setupMemoryMonitoring();
     }
 
-    console.log('🚀 Performance monitoring initialized');
+    if (this.config.debug?.logToConsole) {
+      console.log('🚀 Performance monitoring initialized');
+    }
   }
 
   private setupWebVitalsMonitoring(): void {

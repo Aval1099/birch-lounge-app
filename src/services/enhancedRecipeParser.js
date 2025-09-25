@@ -514,3 +514,18 @@ const fallbackRecipeParsing = async (response) => {
   }
   return [];
 };
+
+// Export the main service object
+export const enhancedRecipeParser = {
+  parseRecipesWithIntelligence,
+  standardizeIngredient,
+  calculateDifficultyScore,
+  estimatePrepTime,
+  classifyRecipeCategory,
+  getRecipeAlcoholContent,
+  calculateABV,
+  calculateRecipeQualityScore
+};
+
+// Default export for backward compatibility
+export default enhancedRecipeParser;

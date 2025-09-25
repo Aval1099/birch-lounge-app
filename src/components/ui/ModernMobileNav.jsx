@@ -1,4 +1,3 @@
-import { memo, useState, useEffect } from 'react';
 import { 
   Home, 
   Search, 
@@ -8,6 +7,8 @@ import {
   ChefHat,
   Zap
 } from 'lucide-react';
+import { memo, useState, useEffect } from 'react';
+
 import { cn } from '../../utils';
 
 /**

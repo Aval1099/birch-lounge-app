@@ -1,4 +1,5 @@
 import { memo, useState, useEffect } from 'react';
+
 import { cn } from '../../utils';
 import { ModernHeader, ModernMobileNav } from '../ui';
 
@@ -6,7 +7,7 @@ import { ModernHeader, ModernMobileNav } from '../ui';
  * Modern Mobile Layout - Premium mobile-first layout
  * Features: Safe areas, gesture support, optimized spacing
  */
-const ModernMobileLayout = memo(({ 
+const ModernMobileLayout = memo(({
   children,
   header,
   navigation,
@@ -15,9 +16,9 @@ const ModernMobileLayout = memo(({
   className = '',
   headerProps = {},
   navigationProps = {},
-  ...props 
+  ...props
 }) => {
-  const [headerHeight, setHeaderHeight] = useState(0);
+  const [_headerHeight, setHeaderHeight] = useState(0);
   const [navHeight, setNavHeight] = useState(0);
 
   // Measure header and navigation heights for proper spacing
@@ -25,11 +26,11 @@ const ModernMobileLayout = memo(({
     const measureElements = () => {
       const headerEl = document.querySelector('[data-header]');
       const navEl = document.querySelector('[data-navigation]');
-      
+
       if (headerEl) {
         setHeaderHeight(headerEl.offsetHeight);
       }
-      
+
       if (navEl) {
         setNavHeight(navEl.offsetHeight);
       }
@@ -41,7 +42,7 @@ const ModernMobileLayout = memo(({
   }, []);
 
   return (
-    <div 
+    <div
       className={cn(
         'min-h-screen bg-neutral-50 dark:bg-neutral-950',
         'flex flex-col',
@@ -60,9 +61,9 @@ const ModernMobileLayout = memo(({
           )}
         </div>
       )}
-      
+
       {/* Main Content Area */}
-      <main 
+      <main
         className={cn(
           'flex-1 relative',
           'overflow-x-hidden',
@@ -84,18 +85,18 @@ const ModernMobileLayout = memo(({
         )}>
           {children}
         </div>
-        
+
         {/* Background Pattern */}
         <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
           {/* Gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary-50/30 via-transparent to-accent-50/30 dark:from-primary-950/30 dark:to-accent-950/30" />
-          
+
           {/* Subtle pattern */}
           <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
             <svg width="60" height="60" viewBox="0 0 60 60" className="w-full h-full">
               <defs>
                 <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                  <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="1"/>
+                  <path d="M 60 0 L 0 0 0 60" fill="none" stroke="currentColor" strokeWidth="1" />
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#grid)" />
@@ -103,7 +104,7 @@ const ModernMobileLayout = memo(({
           </div>
         </div>
       </main>
-      
+
       {/* Bottom Navigation */}
       {navigation !== false && (
         <div data-navigation>
@@ -116,7 +117,7 @@ const ModernMobileLayout = memo(({
           )}
         </div>
       )}
-      
+
       {/* Scroll to top button */}
       <ScrollToTopButton />
     </div>

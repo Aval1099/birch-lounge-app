@@ -1,4 +1,3 @@
-import { memo, useState } from 'react';
 import { 
   Clock, 
   Users, 
@@ -9,9 +8,12 @@ import {
   ChefHat,
   Zap
 } from 'lucide-react';
+import { memo, useState } from 'react';
+
 import { cn } from '../../utils';
-import ModernCard from './ModernCard';
+
 import ModernButton from './ModernButton';
+import ModernCard from './ModernCard';
 
 /**
  * Modern Recipe Card - Premium mobile-first design

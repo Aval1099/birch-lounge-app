@@ -43,8 +43,12 @@ export const usePerformanceMonitoring = (config?: Partial<PerformanceConfig>) =>
 
   // Initialize performance monitoring
   useEffect(() => {
-    performanceMonitor.initialize(config);
-    setIsMonitoring(true);
+    // Only initialize once per session
+    if (!sessionIdRef.current) {
+      performanceMonitor.initialize(config);
+      setIsMonitoring(true);
+      sessionIdRef.current = 'initialized';
+    }
 
     // Subscribe to performance updates
     const unsubscribe = performanceMonitor.subscribe((metric, value) => {
@@ -82,12 +86,12 @@ export const usePerformanceMonitoring = (config?: Partial<PerformanceConfig>) =>
 
     return () => {
       unsubscribe();
-      if (sessionIdRef.current) {
+      if (sessionIdRef.current && sessionIdRef.current !== 'initialized') {
         performanceMonitor.endSession(sessionIdRef.current);
       }
       setIsMonitoring(false);
     };
-  }, [config]);
+  }, []); // Empty dependency array - only initialize once
 
   // Record custom metrics
   const recordMetric = useCallback((metric: string, value: number, details?: any) => {

@@ -97,7 +97,7 @@ const RecipeFilters = memo(() => {
     filters.favoritesOnly;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
+    <div className="bg-gradient-to-r from-white to-green-50/50 dark:from-gray-800 dark:to-green-900/20 rounded-xl shadow-lg shadow-green-500/10 border border-green-200/50 dark:border-green-700/50 p-6 mb-6">
       <div className="space-y-4">
         {/* Search Bar */}
         <div className="relative">
@@ -114,7 +114,7 @@ const RecipeFilters = memo(() => {
           {/* Loading indicator */}
           {isSearching && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <div className="animate-spin w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full" />
+              <div className="animate-spin w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full" />
             </div>
           )}
 
@@ -132,7 +132,7 @@ const RecipeFilters = memo(() => {
         </div>
 
         {/* Filter Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Category Filter */}
           <Select
             label="Category"

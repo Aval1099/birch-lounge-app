@@ -43,20 +43,20 @@ const Button = memo(forwardRef(({
   // Theme-based variant styles
   const variantStyles = {
     light: {
-      default: 'bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500',
-      primary: 'bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500',
+      default: 'bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 text-green-800 focus:ring-green-500 border border-green-200',
+      primary: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white focus:ring-green-500 shadow-lg shadow-green-500/25',
       danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500',
-      ghost: 'bg-transparent hover:bg-gray-200 text-gray-700 focus:ring-gray-500',
-      success: 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500',
-      outline: 'border border-gray-300 bg-transparent hover:bg-gray-50 text-gray-700 focus:ring-gray-500'
+      ghost: 'bg-transparent hover:bg-green-100 text-green-700 focus:ring-green-500',
+      success: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white focus:ring-green-500',
+      outline: 'border border-green-300 bg-transparent hover:bg-green-50 text-green-700 focus:ring-green-500'
     },
     dark: {
-      default: 'bg-gray-700 hover:bg-gray-600 text-gray-200 focus:ring-gray-500',
-      primary: 'bg-amber-600 hover:bg-amber-500 text-white focus:ring-amber-500',
+      default: 'bg-gradient-to-r from-green-800 to-emerald-800 hover:from-green-700 hover:to-emerald-700 text-green-100 focus:ring-green-500',
+      primary: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white focus:ring-green-500 shadow-lg shadow-green-500/25',
       danger: 'bg-red-600 hover:bg-red-500 text-white focus:ring-red-500',
-      ghost: 'bg-transparent hover:bg-gray-700 text-gray-300 focus:ring-gray-500',
-      success: 'bg-green-700 hover:bg-green-600 text-white focus:ring-green-500',
-      outline: 'border border-gray-600 bg-transparent hover:bg-gray-800 text-gray-300 focus:ring-gray-500'
+      ghost: 'bg-transparent hover:bg-green-900/30 text-green-300 focus:ring-green-500',
+      success: 'bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-600 hover:to-emerald-600 text-white focus:ring-green-500',
+      outline: 'border border-green-600 bg-transparent hover:bg-green-900/20 text-green-300 focus:ring-green-500'
     }
   };
 

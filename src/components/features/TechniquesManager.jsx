@@ -2,12 +2,18 @@ import {
   Blend,
   BookOpen,
   ChefHat,
+  Clock,
   Droplets,
+  ExternalLink,
+  Eye,
   Flame,
   Plus,
   Scissors,
+  Search,
   Star,
-  Thermometer, Timer,
+  Thermometer,
+  Timer,
+  Trash2,
   Zap
 } from 'lucide-react';
 import { memo, useCallback, useMemo, useState } from 'react';
@@ -15,6 +21,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { ActionType } from '../../constants';
 import { useAdvancedSearch } from '../../hooks/useAdvancedSearch';
 import { useApp } from '../../hooks/useApp';
+import { Button, Card, Input, Badge, Select } from '../ui';
 
 /**
  * Techniques Manager Component - Comprehensive bartending techniques library

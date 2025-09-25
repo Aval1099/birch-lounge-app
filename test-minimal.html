@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .error { background: #f44336; }
+        .warning { background: #ff9800; }
+        .success { background: #4CAF50; }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>🔍 DIAGNOSTIC TEST</h1>
+        <p>If you can see this, basic HTML is working!</p>
+        
+        <div id="js-test" class="test-box error">
+            ❌ JavaScript not loaded yet...
+        </div>
+        
+        <div id="react-test" class="test-box error">
+            ❌ React not loaded yet...
+        </div>
+        
+        <button onclick="testBasicJS()">Test Basic JavaScript</button>
+        <button onclick="testReact()">Test React</button>
+        <button onclick="testFetch()">Test Network</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        console.log('🔍 DIAGNOSTIC: Basic JavaScript is working!');
+        
+        // Test 1: Basic JavaScript
+        function testBasicJS() {
+            const jsTest = document.getElementById('js-test');
+            jsTest.innerHTML = '✅ Basic JavaScript is working!';
+            jsTest.className = 'test-box success';
+            console.log('✅ Basic JavaScript test passed');
+        }
+        
+        // Test 2: React Loading
+        function testReact() {
+            try {
+                // Try to load React from CDN
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/react@18/umd/react.development.js';
+                script.onload = () => {
+                    const reactTest = document.getElementById('react-test');
+                    reactTest.innerHTML = '✅ React CDN loaded successfully!';
+                    reactTest.className = 'test-box success';
+                    console.log('✅ React CDN test passed');
+                };
+                script.onerror = () => {
+                    const reactTest = document.getElementById('react-test');
+                    reactTest.innerHTML = '❌ React CDN failed to load';
+                    reactTest.className = 'test-box error';
+                    console.error('❌ React CDN test failed');
+                };
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('❌ React test error:', error);
+            }
+        }
+        
+        // Test 3: Network/Fetch
+        function testFetch() {
+            const results = document.getElementById('results');
+            results.innerHTML += '<div class="test-box warning">🔄 Testing network...</div>';
+            
+            fetch('https://httpbin.org/json')
+                .then(response => response.json())
+                .then(data => {
+                    results.innerHTML += '<div class="test-box success">✅ Network fetch working!</div>';
+                    console.log('✅ Network test passed:', data);
+                })
+                .catch(error => {
+                    results.innerHTML += '<div class="test-box error">❌ Network fetch failed: ' + error.message + '</div>';
+                    console.error('❌ Network test failed:', error);
+                });
+        }
+        
+        // Auto-run basic test
+        setTimeout(testBasicJS, 100);
+        
+        // Log browser info
+        console.log('🔍 DIAGNOSTIC INFO:');
+        console.log('- User Agent:', navigator.userAgent);
+        console.log('- URL:', window.location.href);
+        console.log('- Protocol:', window.location.protocol);
+        console.log('- Local Storage Available:', typeof(Storage) !== "undefined");
+        console.log('- Service Worker Available:', 'serviceWorker' in navigator);
+    </script>
+</body>
+</html>

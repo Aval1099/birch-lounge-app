@@ -1,4 +1,3 @@
-import { memo, useState, useEffect } from 'react';
 import { 
   Search, 
   Bell, 
@@ -9,7 +8,10 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react';
+import { memo, useState, useEffect } from 'react';
+
 import { cn } from '../../utils';
+
 import ModernButton from './ModernButton';
 
 /**

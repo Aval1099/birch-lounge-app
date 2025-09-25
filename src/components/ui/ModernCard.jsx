@@ -1,11 +1,12 @@
 import { forwardRef, memo } from 'react';
+
 import { cn } from '../../utils';
 
 /**
  * Modern Card Component - Premium glassmorphism design
  * Features: Multiple variants, responsive, touch-optimized, accessibility
  */
-const ModernCard = memo(forwardRef(({ 
+const ModernCard = memo(forwardRef(({
   children,
   className = '',
   variant = 'default',
@@ -15,7 +16,7 @@ const ModernCard = memo(forwardRef(({
   glass = false,
   gradient = false,
   onClick,
-  ...props 
+  ...props
 }, ref) => {
   // Base classes for all cards
   const baseClasses = [
@@ -33,7 +34,7 @@ const ModernCard = memo(forwardRef(({
       'shadow-sm hover:shadow-md',
       'rounded-xl',
     ].join(' '),
-    
+
     elevated: [
       'bg-white/98 backdrop-blur-md',
       'dark:bg-neutral-900/98',
@@ -41,7 +42,7 @@ const ModernCard = memo(forwardRef(({
       'rounded-2xl',
       'border-white/20 dark:border-neutral-800/20',
     ].join(' '),
-    
+
     glass: [
       'bg-white/10 backdrop-blur-xl',
       'dark:bg-black/10',
@@ -49,7 +50,7 @@ const ModernCard = memo(forwardRef(({
       'shadow-glass hover:shadow-glass-lg',
       'rounded-2xl',
     ].join(' '),
-    
+
     gradient: [
       'bg-gradient-to-br from-white/90 via-white/95 to-neutral-50/90',
       'dark:from-neutral-900/90 dark:via-neutral-900/95 dark:to-neutral-800/90',
@@ -58,7 +59,7 @@ const ModernCard = memo(forwardRef(({
       'rounded-2xl',
       'border-gradient',
     ].join(' '),
-    
+
     outlined: [
       'bg-transparent',
       'border-2 border-neutral-300/60',
@@ -67,7 +68,7 @@ const ModernCard = memo(forwardRef(({
       'dark:hover:border-primary-500/60',
       'rounded-xl',
     ].join(' '),
-    
+
     minimal: [
       'bg-neutral-50/80 backdrop-blur-sm',
       'dark:bg-neutral-800/80',
@@ -125,32 +126,40 @@ const ModernCard = memo(forwardRef(({
     className
   );
 
+  const handleKeyDown = (e) => {
+    if (interactive && onClick && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick(e);
+    }
+  };
+
   return (
     <div
       ref={ref}
       className={cardClasses}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
       {...props}
     >
       {/* Gradient border effect */}
       {gradientBorder}
-      
+
       {/* Glass overlay effect */}
       {glassOverlay}
-      
+
       {/* Shine effect on hover */}
       <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
         <div className="absolute top-0 left-0 h-full w-px bg-gradient-to-b from-transparent via-white/40 to-transparent" />
       </div>
-      
+
       {/* Content */}
       <div className="relative z-10">
         {children}
       </div>
-      
+
       {/* Ripple effect for interactive cards */}
       {interactive && (
         <div className="absolute inset-0 overflow-hidden rounded-inherit">

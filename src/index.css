@@ -8,10 +8,28 @@
 
 @import './styles/mobile.css';
 
-body {
-  background-color: #f3f4f6 !important;
+/* FORCE VIBRANT COLORS - Override any conflicting styles */
+* {
+  box-sizing: border-box;
 }
 
 html {
-  background-color: #f3f4f6;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  /* Force vibrant background immediately */
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5, #a7f3d0) !important;
+  color: #1f2937;
+  min-height: 100vh;
+}
+
+/* Ensure root container has vibrant background */
+#root {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5, #a7f3d0);
 }

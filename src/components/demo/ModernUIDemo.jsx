@@ -1,14 +1,16 @@
-import { memo, useState } from 'react';
-import { 
-  Search, 
-  Heart, 
-  Star, 
-  Clock, 
-  Users, 
+import {
+  Search,
+  Heart,
+  Star,
+  Clock,
+  Users,
   ChefHat,
   Plus,
   Settings
 } from 'lucide-react';
+import { memo, useState } from 'react';
+
+import ModernMobileLayout from '../layout/ModernMobileLayout';
 import {
   ModernButton,
   ModernCard,
@@ -17,7 +19,6 @@ import {
   ModernHeader,
   ModernMobileNav
 } from '../ui';
-import ModernMobileLayout from '../layout/ModernMobileLayout';
 
 /**
  * Modern UI Demo - Showcase of the new design system
@@ -219,11 +220,11 @@ const ModernUIDemo = memo(() => {
             <ModernRecipeCard
               key={recipe.id}
               recipe={recipe}
-              onSelect={(recipe) => console.log('Selected:', recipe.name)}
-              onFavorite={(recipe, isFavorite) => 
-                console.log('Favorite:', recipe.name, isFavorite)
+              onSelect={(recipe) => console.warn('Selected:', recipe.name)}
+              onFavorite={(recipe, isFavorite) =>
+                console.warn('Favorite:', recipe.name, isFavorite)
               }
-              onShare={(recipe) => console.log('Share:', recipe.name)}
+              onShare={(recipe) => console.warn('Share:', recipe.name)}
             />
           ))}
         </div>
@@ -262,18 +263,18 @@ const ModernUIDemo = memo(() => {
             <div className="space-y-1">
               <div className="font-medium text-gray-900 dark:text-white">Features</div>
               <div className="text-gray-600 dark:text-gray-400">
-                • Glassmorphism effects<br/>
-                • Mobile-first responsive<br/>
-                • Touch-optimized (44px+)<br/>
+                • Glassmorphism effects<br />
+                • Mobile-first responsive<br />
+                • Touch-optimized (44px+)<br />
                 • Haptic feedback
               </div>
             </div>
             <div className="space-y-1">
               <div className="font-medium text-gray-900 dark:text-white">Technology</div>
               <div className="text-gray-600 dark:text-gray-400">
-                • Tailwind CSS v4<br/>
-                • CSS Custom Properties<br/>
-                • Modern animations<br/>
+                • Tailwind CSS v4<br />
+                • CSS Custom Properties<br />
+                • Modern animations<br />
                 • Accessibility ready
               </div>
             </div>

@@ -64,17 +64,17 @@ const MobileNavigation = memo(({ tabs = [] }) => {
     return (
       <>
         {/* Mobile Header with Hamburger */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 border-b border-green-500/20 px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30">
                 <ChefHat className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <h1 className="text-lg font-bold text-white">
                   Birch Lounge
                 </h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-green-100">
                   {tabs.find(t => t.id === activeTab)?.label || 'Cocktail Manager'}
                 </p>
               </div>
@@ -153,7 +153,7 @@ const MobileNavigation = memo(({ tabs = [] }) => {
                         <Icon className="w-5 h-5 flex-shrink-0" />
                         <span className="font-medium">{tab.label}</span>
                         {isActive && (
-                          <div className="ml-auto w-2 h-2 bg-amber-600 rounded-full" />
+                          <div className="ml-auto w-2 h-2 bg-green-500 rounded-full" />
                         )}
                       </button>
                     );
@@ -172,7 +172,7 @@ const MobileNavigation = memo(({ tabs = [] }) => {
           {/* Tab Indicator */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700">
             <div
-              className="h-full bg-amber-600 transition-all duration-300"
+              className="h-full bg-green-500 transition-all duration-300"
               style={{
                 width: `${100 / tabs.length}%`,
                 transform: `translateX(${currentTabIndex * 100}%)`
@@ -213,7 +213,7 @@ const MobileNavigation = memo(({ tabs = [] }) => {
 
   // Desktop/Tablet horizontal tabs
   return (
-    <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <nav className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-800 dark:to-emerald-800 border-b border-green-500/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex space-x-8 overflow-x-auto">
           {tabs.map(tab => {

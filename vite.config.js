@@ -1,7 +1,6 @@
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -12,124 +11,38 @@ export default defineConfig({
       open: false,
       gzipSize: true,
       brotliSize: true
-    }),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              }
-            }
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              }
-            }
-          },
-          {
-            urlPattern: /\/api\/.*$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-              },
-              networkTimeoutSeconds: 3
-            }
-          }
-        ],
-        skipWaiting: true,
-        clientsClaim: true
-      },
-      manifest: {
-        name: 'Birch Lounge - Cocktail Recipe Manager',
-        short_name: 'Birch Lounge',
-        description: 'Professional cocktail recipe management with offline capabilities',
-        theme_color: '#d97706',
-        background_color: '#f9fafb',
-        display: 'standalone',
-        orientation: 'portrait-primary',
-        scope: '/',
-        start_url: '/',
-        categories: ['food', 'lifestyle', 'productivity'],
-        icons: [
-          {
-            src: 'pwa-64x64.png',
-            sizes: '64x64',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
-          }
-        ],
-        shortcuts: [
-          {
-            name: 'New Recipe',
-            short_name: 'New Recipe',
-            description: 'Create a new cocktail recipe',
-            url: '/?action=new-recipe',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Search Recipes',
-            short_name: 'Search',
-            description: 'Search your recipe collection',
-            url: '/?action=search',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          }
-        ]
-      }
     })
   ],
+  define: {
+    global: 'globalThis',
+  },
+  resolve: {
+    alias: {
+      // Node.js polyfills for browser compatibility
+      'node:stream': 'stream-browserify',
+      'node:process': 'process/browser',
+      'node:buffer': 'buffer',
+      'node:util': 'util',
+      'node:path': 'path-browserify',
+      'node:fs': 'browserify-fs',
+      'node:crypto': 'crypto-browserify',
+    }
+  },
   build: {
     sourcemap: true,
+    chunkSizeWarningLimit: 350, // Reduced warning threshold
     rollupOptions: {
       output: {
         manualChunks: (id) => {
           // Core React libraries
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             return 'vendor-react';
+          }
+
+          // Large UI libraries
+          if (id.includes('lucide-react') || id.includes('@headlessui') ||
+            id.includes('framer-motion') || id.includes('react-spring')) {
+            return 'vendor-ui';
           }
 
           // Supabase and database utilities
@@ -144,8 +57,42 @@ export default defineConfig({
 
           // AI and ML services
           if (id.includes('geminiService') || id.includes('enhancedRecipeParser') ||
-            id.includes('aiService') || id.includes('mlService')) {
+            id.includes('aiService') || id.includes('mlService') || id.includes('openai')) {
             return 'feature-ai';
+          }
+
+          // Modern UI components (our custom components)
+          if (id.includes('ModernButton') || id.includes('ModernCard') ||
+            id.includes('ModernInput') || id.includes('ModernRecipe') ||
+            id.includes('ModernMobile') || id.includes('ModernHeader') ||
+            id.includes('ModernUIDemo')) {
+            return 'feature-modern-ui';
+          }
+
+          // Vibrant UI components (new design system)
+          if (id.includes('VibrantButton') || id.includes('VibrantCard') ||
+            id.includes('VibrantInput') || id.includes('VibrantNavigation') ||
+            id.includes('VibrantHeader') || id.includes('VibrantRecipe')) {
+            return 'feature-vibrant-ui';
+          }
+
+          // Heavy feature components - separate chunks
+          if (id.includes('MenuBuilder') || id.includes('BatchScaling')) {
+            return 'feature-menu-batch';
+          }
+
+          if (id.includes('TechniquesManager') || id.includes('ServiceMode')) {
+            return 'feature-techniques-service';
+          }
+
+          if (id.includes('IngredientsManager') || id.includes('OfflineManager')) {
+            return 'feature-ingredients-offline';
+          }
+
+          // Core recipe components (keep in main bundle)
+          if (id.includes('RecipeGrid') || id.includes('RecipeFilters') ||
+            id.includes('RecipeModal') || id.includes('RecipeCard')) {
+            return 'core-recipes';
           }
 
           // Virtualization libraries
@@ -153,46 +100,46 @@ export default defineConfig({
             return 'feature-virtualization';
           }
 
-          // UI component libraries
-          if (id.includes('lucide-react') || id.includes('ui-components')) {
-            return 'vendor-ui';
-          }
-
           // Performance monitoring
-          if (id.includes('web-vitals') || id.includes('performance')) {
+          if (id.includes('performanceService') || id.includes('cachePerformanceMonitor') ||
+            id.includes('web-vitals')) {
             return 'feature-performance';
           }
 
-          // Advanced search and filtering
-          if (id.includes('advancedSearchEngine') || id.includes('advancedFilterEngine') ||
-            id.includes('searchService') || id.includes('filterService')) {
+          // Search and filtering
+          if (id.includes('searchService') || id.includes('filterService') ||
+            id.includes('fuse.js')) {
             return 'feature-search';
           }
 
-          // Service workers and caching
-          if (id.includes('cacheService') || id.includes('offlineService') ||
-            id.includes('syncService') || id.includes('intelligentCache')) {
+          // Cache management
+          if (id.includes('cacheService') || id.includes('offlineManager') ||
+            id.includes('idb')) {
             return 'feature-cache';
           }
 
-          // Other vendor libraries
-          if (id.includes('node_modules')) {
-            return 'vendor-misc';
+          // UI utilities and base components
+          if (id.includes('src/components/ui') && !id.includes('Modern')) {
+            return 'ui-base';
           }
 
-          // Application services
+          // Service utilities
           if (id.includes('src/services')) {
             return 'app-services';
           }
 
-          // Application components
+          // Remaining application components (should be much smaller now)
           if (id.includes('src/components')) {
             return 'app-components';
+          }
+
+          // Utilities and hooks
+          if (id.includes('src/hooks') || id.includes('src/utils')) {
+            return 'app-utils';
           }
         }
       }
     },
-    chunkSizeWarningLimit: 500, // More aggressive warning threshold
     target: 'esnext', // Modern browsers for better optimization
     minify: 'terser', // Better minification
     terserOptions: {
@@ -205,10 +152,11 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    open: true
+    host: true,
+    open: false
   },
   preview: {
-    port: 4173,
-    open: true
+    port: 3000,
+    host: true
   }
 })

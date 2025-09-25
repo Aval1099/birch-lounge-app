@@ -11,10 +11,12 @@ export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as Icon } from './Icon';
 export { default as Input } from './Input';
+export { default as LazyLoadingWrapper } from './LazyLoadingWrapper';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as MobileNavigation } from './MobileNavigation';
 export { default as Modal } from './Modal';
 export { PerformanceIndicator } from './PerformanceIndicator';
+export { default as ProgressBar } from './ProgressBar';
 export { ResponsiveCard, ResponsiveContainer, default as ResponsiveGrid, ResponsiveList, ResponsiveModal } from './ResponsiveGrid';
 export { default as Select } from './Select';
 export { IngredientSkeleton, MenuSkeleton, ModalSkeleton, RecipeSkeleton, SearchSkeleton, default as Skeleton } from './SkeletonLoader';
@@ -32,3 +34,13 @@ export { default as ModernInput } from './ModernInput';
 export { default as ModernMobileNav } from './ModernMobileNav';
 export { default as ModernRecipeCard } from './ModernRecipeCard';
 export { default as ModernHeader } from './ModernHeader';
+
+// =============================================================================
+// VIBRANT UI COMPONENTS - New Colorful Design System
+// =============================================================================
+
+export { default as VibrantButton } from './VibrantButton';
+export { default as VibrantCard, VibrantCardHeader, VibrantCardContent, VibrantCardFooter } from './VibrantCard';
+export { default as VibrantInput } from './VibrantInput';
+export { default as VibrantNavigation, VibrantDesktopNavigation } from './VibrantNavigation';
+export { default as VibrantHeader } from './VibrantHeader';

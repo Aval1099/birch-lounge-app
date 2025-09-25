@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PWA Icon Generator</title>
+</head>
+<body>
+    <h1>Birch Lounge PWA Icon Generator</h1>
+    <canvas id="canvas64" width="64" height="64" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    <canvas id="canvas192" width="192" height="192" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    <canvas id="canvas512" width="512" height="512" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    
+    <div>
+        <button onclick="downloadIcon(64)">Download 64x64</button>
+        <button onclick="downloadIcon(192)">Download 192x192</button>
+        <button onclick="downloadIcon(512)">Download 512x512</button>
+    </div>
+
+    <script>
+        function createIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const ctx = canvas.getContext('2d');
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            
+            // Fill background with gradient
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add rounded corners effect
+            ctx.globalCompositeOperation = 'destination-in';
+            ctx.beginPath();
+            const radius = size * 0.2;
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+            
+            // Reset composite operation
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Add cocktail emoji
+            ctx.font = `${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText('🍸', size / 2, size / 2);
+        }
+        
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const link = document.createElement('a');
+            link.download = `pwa-${size}x${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        // Create all icons on load
+        createIcon(64);
+        createIcon(192);
+        createIcon(512);
+    </script>
+</body>
+</html>
