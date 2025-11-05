@@ -45,6 +45,7 @@ const Button = memo(forwardRef(({
     light: {
       default: 'bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 text-green-800 focus:ring-green-500 border border-green-200',
       primary: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white focus:ring-green-500 shadow-lg shadow-green-500/25',
+      secondary: 'bg-gradient-to-r from-neutral-100 to-neutral-200 hover:from-neutral-200 hover:to-neutral-300 text-neutral-800 focus:ring-neutral-400 border border-neutral-300',
       danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500',
       ghost: 'bg-transparent hover:bg-green-100 text-green-700 focus:ring-green-500',
       success: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white focus:ring-green-500',
@@ -53,6 +54,7 @@ const Button = memo(forwardRef(({
     dark: {
       default: 'bg-gradient-to-r from-green-800 to-emerald-800 hover:from-green-700 hover:to-emerald-700 text-green-100 focus:ring-green-500',
       primary: 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white focus:ring-green-500 shadow-lg shadow-green-500/25',
+      secondary: 'bg-gradient-to-r from-neutral-800 to-neutral-700 hover:from-neutral-700 hover:to-neutral-600 text-neutral-100 focus:ring-neutral-500 border border-neutral-600/60',
       danger: 'bg-red-600 hover:bg-red-500 text-white focus:ring-red-500',
       ghost: 'bg-transparent hover:bg-green-900/30 text-green-300 focus:ring-green-500',
       success: 'bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-600 hover:to-emerald-600 text-white focus:ring-green-500',
