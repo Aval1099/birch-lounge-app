@@ -136,6 +136,21 @@ describe('Mocktail Integration', () => {
       expect(all).toHaveLength(3);
     });
 
+    it('should support low alcohol and unexpected filter values gracefully', () => {
+      const spritz = { name: 'Citrus Spritz', category: 'Mocktail', alcoholContent: 'low_alcohol' };
+      const recipes = [
+        { name: 'Old Fashioned', category: 'Whiskey', alcoholContent: 'alcoholic' },
+        { name: 'Garden Collins', category: 'Mocktail', alcoholContent: 'non_alcoholic' },
+        spritz
+      ];
+
+      const lowAlcohol = filterRecipesByAlcoholContent(recipes, 'low_alcohol');
+      const unexpected = filterRecipesByAlcoholContent(recipes, 'sparkling');
+
+      expect(lowAlcohol).toEqual([spritz]);
+      expect(unexpected).toEqual(recipes);
+    });
+
     it('should identify mocktails correctly', () => {
       const mocktail = { category: 'Mocktail', alcoholContent: 'non_alcoholic' };
       const cocktail = { category: 'Rum', alcoholContent: 'alcoholic' };
