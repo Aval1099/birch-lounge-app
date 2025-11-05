@@ -46,6 +46,16 @@ describe('Button Component', () => {
     expect(button).toHaveClass('bg-amber-600');
   });
 
+  it('applies secondary variant styles for light theme', () => {
+    const { getByRole } = renderWithProviders(
+      <Button variant="secondary">Secondary Button</Button>
+    );
+
+    const button = getByRole('button');
+    expect(button).toHaveClass('text-neutral-800');
+    expect(button).toHaveClass('border-neutral-300');
+  });
+
   it('handles disabled state', () => {
     const handleClick = vi.fn();
     const { getByRole } = renderWithProviders(
