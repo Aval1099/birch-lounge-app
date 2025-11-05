@@ -38,15 +38,19 @@ export const filterRecipesByAlcoholContent = (recipes, alcoholContent) => {
   
   return recipes.filter(recipe => {
     if (alcoholContent === 'alcoholic') {
-      return recipe.alcoholContent === 'alcoholic' || 
+      return recipe.alcoholContent === 'alcoholic' ||
              (recipe.category && recipe.category.toLowerCase() !== 'mocktail');
     }
-    
+
     if (alcoholContent === 'non_alcoholic') {
-      return recipe.alcoholContent === 'non_alcoholic' || 
+      return recipe.alcoholContent === 'non_alcoholic' ||
              (recipe.category && recipe.category.toLowerCase() === 'mocktail');
     }
-    
+
+    if (alcoholContent === 'low_alcohol') {
+      return recipe.alcoholContent === 'low_alcohol';
+    }
+
     return true;
   });
 };

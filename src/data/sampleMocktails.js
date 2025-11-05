@@ -130,6 +130,32 @@ export const SAMPLE_MOCKTAILS = [
   }),
 
   createRecipe({
+    name: 'Citrus Spritz',
+    category: 'Mocktail',
+    version: 'Low-ABV',
+    source: 'House Light Series',
+    isOriginalVersion: true,
+    alcoholContent: 'low_alcohol',
+    flavorProfile: ['sparkling', 'citrusy', 'bright'],
+    ingredients: [
+      { name: 'Sparkling Water', amount: '3', unit: 'oz', notes: 'Chilled' },
+      { name: 'Non-Alcoholic Aperitif', amount: '1.5', unit: 'oz' },
+      { name: 'Orange Shrub', amount: '0.5', unit: 'oz' },
+      { name: 'Lemon Juice', amount: '0.25', unit: 'oz', notes: 'Freshly squeezed' },
+      { name: 'Low-ABV Bitters', amount: '2', unit: 'dash' },
+      { name: 'Ice', amount: '1', unit: 'cup' }
+    ],
+    instructions: 'Build over ice in a stemmed glass. Stir gently to combine and top with sparkling water. Garnish with a thin orange peel.',
+    glassware: 'Stemmed Glass',
+    garnish: 'Orange peel twist',
+    prepTime: 2,
+    difficulty: 'Easy',
+    notes: 'Sessionable spritz with gentle bitterness and light effervescence',
+    tags: ['spritz', 'citrus', 'light', 'sessionable'],
+    yields: 1
+  }),
+
+  createRecipe({
     name: 'Lavender Lemonade',
     category: 'Mocktail',
     version: 'Artisanal',
