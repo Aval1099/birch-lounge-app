@@ -6,18 +6,48 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { OfflineStorageStats } from '../../types/offline';
 import type { Recipe, Ingredient, Technique, Menu } from '../../types';
 
-// Create mock functions that we can control
-const mockGetCachedRecipes = vi.fn();
-const mockGetCachedIngredients = vi.fn();
-const mockGetCachedTechniques = vi.fn();
-const mockGetCachedMenus = vi.fn();
-const mockGetCachedRecipe = vi.fn();
-const mockDeleteRecipe = vi.fn();
-const mockDeleteIngredient = vi.fn();
-const mockDeleteTechnique = vi.fn();
-const mockDeleteMenu = vi.fn();
-const mockGetStorageStats = vi.fn();
-const mockClearAllData = vi.fn();
+// Create mock functions that we can control (hoisted to avoid TDZ issues)
+const {
+  mockGetCachedRecipes,
+  mockGetCachedIngredients,
+  mockGetCachedTechniques,
+  mockGetCachedMenus,
+  mockGetCachedRecipe,
+  mockDeleteRecipe,
+  mockDeleteIngredient,
+  mockDeleteTechnique,
+  mockDeleteMenu,
+  mockGetStorageStats,
+  mockClearAllData
+} = vi.hoisted(() => {
+  const createAsyncMock = <T>(defaultValue: T) => {
+    const fn = vi.fn<[], Promise<T>>();
+    fn.mockResolvedValue(defaultValue);
+    return fn;
+  };
+
+  return {
+    mockGetCachedRecipes: createAsyncMock<unknown[]>([]),
+    mockGetCachedIngredients: createAsyncMock<unknown[]>([]),
+    mockGetCachedTechniques: createAsyncMock<unknown[]>([]),
+    mockGetCachedMenus: createAsyncMock<unknown[]>([]),
+    mockGetCachedRecipe: createAsyncMock<unknown | null>(null),
+    mockDeleteRecipe: createAsyncMock<boolean>(true),
+    mockDeleteIngredient: createAsyncMock<boolean>(true),
+    mockDeleteTechnique: createAsyncMock<boolean>(true),
+    mockDeleteMenu: createAsyncMock<boolean>(true),
+    mockGetStorageStats: createAsyncMock<OfflineStorageStats>({
+      totalItems: 0,
+      totalSize: 0,
+      recipes: { count: 0, size: 0, pendingSync: 0 },
+      ingredients: { count: 0, size: 0, pendingSync: 0 },
+      techniques: { count: 0, size: 0, pendingSync: 0 },
+      menus: { count: 0, size: 0, pendingSync: 0 },
+      images: { count: 0, size: 0 }
+    }),
+    mockClearAllData: createAsyncMock<void>(undefined)
+  };
+});
 
 // Mock the offline storage service with factory function
 vi.mock('../../services/offlineStorageService', () => ({

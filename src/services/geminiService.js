@@ -202,9 +202,9 @@ export const geminiService = {
     
     return {
       source: envKey ? 'environment' : (hasMemoryKey ? 'memory' : 'none'),
-      hasEnvironmentKey: !!envKey,
+      hasEnvironmentKey: Boolean(envKey),
       hasMemoryKey,
-      isConfigured: envKey || hasMemoryKey
+      isConfigured: Boolean(envKey || hasMemoryKey)
     };
   }
 };

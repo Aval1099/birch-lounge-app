@@ -26,6 +26,10 @@ export const apiKeyService = {
    * Initialize the API key service
    */
   init: () => {
+    // Reset in-memory storage to simulate a fresh session
+    apiKeyService._apiKeyStore.clear();
+    apiKeyService._keyRotationTimestamps.clear();
+
     // Clear any existing localStorage API keys (migration cleanup)
     apiKeyService._clearLegacyStorage();
 
@@ -51,13 +55,7 @@ export const apiKeyService = {
       throw new Error('API key is required and must be a string');
     }
 
-    // Input sanitization for service names
-    const sanitizedServiceName = serviceName
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9_-]/g, '') // Only allow alphanumeric, underscore, and hyphen
-      .replace(/^[^a-z]/, '') // Must start with a letter
-      .substring(0, 50); // Limit length
+    const sanitizedServiceName = apiKeyService._sanitizeServiceName(serviceName);
 
     if (!sanitizedServiceName || sanitizedServiceName.length < 2) {
       throw new Error('Invalid service name format after sanitization');
@@ -65,7 +63,7 @@ export const apiKeyService = {
 
     // Validate API key format before storing (unless bypassed for environment keys)
     if (!options.bypassValidation && !apiKeyService._validateApiKeyFormat(sanitizedServiceName, apiKey)) {
-      throw new Error(`Invalid API key format for service: ${sanitizedServiceName}`);
+      throw new Error('Invalid API key format');
     }
 
     // Store in memory only with expiration mechanism (default 24 hours)
@@ -83,7 +81,7 @@ export const apiKeyService = {
 
     // Track key rotation if specified
     if (options.rotateKey) {
-      apiKeyService._keyRotationTimestamps.set(serviceName, Date.now());
+      apiKeyService._keyRotationTimestamps.set(sanitizedServiceName, Date.now());
     }
 
     // API key stored securely in memory
@@ -100,14 +98,16 @@ export const apiKeyService = {
       throw new Error('Service name is required and must be a string');
     }
 
+    const sanitizedServiceName = apiKeyService._sanitizeServiceName(serviceName);
+
     // First check environment variables (highest priority)
-    const envKey = apiKeyService._getEnvironmentKey(serviceName);
+    const envKey = apiKeyService._getEnvironmentKey(sanitizedServiceName);
     if (envKey) {
       return envKey;
     }
 
     // Then check in-memory storage
-    const stored = apiKeyService._apiKeyStore.get(serviceName);
+    const stored = apiKeyService._apiKeyStore.get(sanitizedServiceName);
     if (stored && stored.key) {
       // Check if key has expired (using new expiration mechanism)
       const now = Date.now();
@@ -140,8 +140,10 @@ export const apiKeyService = {
       throw new Error('Service name is required and must be a string');
     }
 
-    const deleted = apiKeyService._apiKeyStore.delete(serviceName);
-    apiKeyService._keyRotationTimestamps.delete(serviceName);
+    const sanitizedServiceName = apiKeyService._sanitizeServiceName(serviceName);
+
+    const deleted = apiKeyService._apiKeyStore.delete(sanitizedServiceName);
+    apiKeyService._keyRotationTimestamps.delete(sanitizedServiceName);
 
     if (deleted) {
       // API key removed securely
@@ -200,6 +202,7 @@ export const apiKeyService = {
     return {
       services: [...new Set([...services, ...envServices])],
       memoryKeys: services.length,
+      keysInMemory: services.length,
       environmentKeys: envServices.length,
       hasKeys: services.length > 0 || envServices.length > 0
     };
@@ -220,16 +223,18 @@ export const apiKeyService = {
       throw new Error('New API key is required and must be a string');
     }
 
+    const sanitizedServiceName = apiKeyService._sanitizeServiceName(serviceName);
+
     // Validate new key format
-    if (!apiKeyService._validateApiKeyFormat(serviceName, newApiKey)) {
-      throw new Error(`Invalid new API key format for service: ${serviceName}`);
+    if (!apiKeyService._validateApiKeyFormat(sanitizedServiceName, newApiKey)) {
+      throw new Error('Invalid API key format');
     }
 
     // Get current key for logging
-    const currentKey = apiKeyService.getApiKey(serviceName);
+    const currentKey = apiKeyService.getApiKey(sanitizedServiceName);
 
     // Set new key with rotation flag
-    apiKeyService.setApiKey(serviceName, newApiKey, {
+    apiKeyService.setApiKey(sanitizedServiceName, newApiKey, {
       rotateKey: true,
       previousKeyHash: currentKey ? apiKeyService._hashKey(currentKey) : null
     });
@@ -244,12 +249,13 @@ export const apiKeyService = {
    * @returns {Object} Rotation information
    */
   getKeyRotationInfo: (serviceName) => {
-    const timestamp = apiKeyService._keyRotationTimestamps.get(serviceName);
-    const stored = apiKeyService._apiKeyStore.get(serviceName);
+    const sanitizedServiceName = apiKeyService._sanitizeServiceName(serviceName);
+    const timestamp = apiKeyService._keyRotationTimestamps.get(sanitizedServiceName);
+    const stored = apiKeyService._apiKeyStore.get(sanitizedServiceName);
 
     return {
       lastRotated: timestamp || null,
-      hasPreviousKey: stored && stored.previousKeyHash,
+      hasPreviousKey: Boolean(stored && stored.previousKeyHash),
       keyAge: timestamp ? Date.now() - timestamp : null
     };
   },
@@ -262,29 +268,19 @@ export const apiKeyService = {
    * @private
    */
   _validateApiKeyFormat: (serviceName, apiKey) => {
-    // In test environment, be more flexible with validation
-    const isTestEnv = import.meta.env?.MODE === 'test' ||
-      process.env.NODE_ENV === 'test' ||
-      typeof global !== 'undefined' && global.__vitest__;
-
-    // For test environment, allow any reasonable key format
-    if (isTestEnv) {
-      return apiKey.length >= 5 && /^[a-zA-Z0-9\-_]+$/.test(apiKey);
+    if (!apiKey || typeof apiKey !== 'string') {
+      return false;
     }
 
-    switch (serviceName.toLowerCase()) {
-      case 'gemini': {
-        // Gemini keys typically start with 'AIza' and are longer than 20 characters
-        return apiKey.length > 20 && apiKey.startsWith('AIza');
-      }
-      case 'openai': {
-        // OpenAI keys start with 'sk-' and are longer than 40 characters
-        return apiKey.length > 40 && apiKey.startsWith('sk-');
-      }
+    const normalizedKey = apiKey.trim();
 
+    switch (serviceName.toLowerCase()) {
+      case 'gemini':
+        return /^AIza[0-9A-Za-z-_]{8,}$/.test(normalizedKey);
+      case 'openai':
+        return /^sk-[0-9A-Za-z-_]{10,}$/.test(normalizedKey);
       default:
-        // Basic validation for unknown services
-        return apiKey.length > 10 && /^[a-zA-Z0-9\-_]+$/.test(apiKey);
+        return /^[a-zA-Z0-9\-_]{8,}$/.test(normalizedKey);
     }
   },
 
@@ -420,6 +416,21 @@ export const apiKeyService = {
     } catch {
       return false;
     }
+  },
+
+  /**
+   * Normalize service names for consistent internal storage
+   * @param {string} serviceName - Raw service name
+   * @returns {string} Normalized service name
+   * @private
+   */
+  _sanitizeServiceName: (serviceName) => {
+    return serviceName
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9_-]/g, '')
+      .replace(/^[^a-z]/, '')
+      .substring(0, 50);
   }
 };
 
