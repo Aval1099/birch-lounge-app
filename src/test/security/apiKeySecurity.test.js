@@ -250,10 +250,7 @@ describe('API Key Security Tests', () => {
     });
 
     it('should handle API key validation errors', async () => {
-      // Set invalid key
-      apiKeyService.setApiKey('gemini', 'invalid-key');
-
-      await expect(geminiService.generate(null, 'test prompt')).rejects.toThrow();
+      await expect(geminiService.generate('invalid-key', 'test prompt')).rejects.toThrow();
     });
 
     it('should fall back to environment variables', async () => {

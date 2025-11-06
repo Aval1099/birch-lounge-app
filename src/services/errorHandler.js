@@ -14,14 +14,19 @@ export const errorHandler = {
    * @returns {Object} User-friendly error info with recovery actions
    */
   handle: (error, context = 'Unknown', options = {}) => {
+    const category = options.category || errorHandler.getErrorCategory(error, context);
+    const severity = options.severity || errorHandler.getSeverity(error);
+    const actionable = options.actionable ?? (category !== errorHandler.ErrorCategories.SYSTEM);
+
     const errorInfo = {
       timestamp: new Date().toISOString(),
       context,
       message: error.message || 'An unexpected error occurred',
       userMessage: errorHandler.getUserMessage(error, context),
-      severity: errorHandler.getSeverity(error),
-      category: errorHandler.getErrorCategory(error, context),
-      recoveryActions: errorHandler.getRecoveryActions(error, context, options),
+      severity,
+      category,
+      actionable,
+      recoveryActions: errorHandler.getRecoveryActions(error, context, { ...options, category }),
       canRetry: errorHandler.canRetry(error, context),
       isTemporary: errorHandler.isTemporary(error),
       metadata: {
@@ -123,19 +128,23 @@ export const errorHandler = {
   getSeverity: (error) => {
     const message = error.message?.toLowerCase() || '';
 
-    if (message.includes('network') || message.includes('sync')) {
-      return 'warning'; // Non-critical, app still works offline
+    if (message.includes('api key') || message.includes('configuration')) {
+      return errorHandler.ErrorSeverity.HIGH;
     }
 
-    if (message.includes('validation') || message.includes('invalid')) {
-      return 'error'; // User input issue
+    if (message.includes('network') || message.includes('sync')) {
+      return errorHandler.ErrorSeverity.MEDIUM;
+    }
+
+    if (message.includes('validation') || message.includes('invalid') || message.includes('required')) {
+      return errorHandler.ErrorSeverity.HIGH;
     }
 
     if (message.includes('quota') || message.includes('storage')) {
-      return 'critical'; // App functionality affected
+      return errorHandler.ErrorSeverity.CRITICAL;
     }
 
-    return 'error'; // Default severity
+    return errorHandler.ErrorSeverity.MEDIUM;
   },
 
   /**
@@ -219,8 +228,12 @@ export const errorHandler = {
       return 'storage';
     }
 
+    if (message.includes('api key') || message.includes('configuration')) {
+      return 'configuration';
+    }
+
     // Authentication and authorization
-    if (message.includes('unauthorized') || message.includes('forbidden') || message.includes('api key')) {
+    if (message.includes('unauthorized') || message.includes('forbidden')) {
       return 'auth';
     }
 
@@ -258,10 +271,30 @@ export const errorHandler = {
    * @returns {Array} Array of recovery actions
    */
   getRecoveryActions: (error, context, options = {}) => {
-    const category = errorHandler.getErrorCategory(error, context);
+    const category = options.category || errorHandler.getErrorCategory(error, context);
     const actions = [];
 
     switch (category) {
+      case 'configuration':
+        actions.push(
+          {
+            type: 'open_settings',
+            label: 'Open Settings',
+            description: 'Review your API key configuration',
+            action: 'open_settings',
+            priority: 'high'
+          },
+          {
+            type: 'regenerate_key',
+            label: 'Regenerate Key',
+            description: 'Generate a new API key from your provider',
+            action: 'external_link',
+            url: errorHandler._getApiKeyUrl(error.message),
+            priority: 'medium'
+          }
+        );
+        break;
+
       case 'network':
         actions.push(
           {
@@ -601,8 +634,8 @@ export const errorHandler = {
    */
   handleApiKeyError: (error, context = 'API Key') => {
     return errorHandler.handle(error, context, {
-      category: 'configuration',
-      severity: 'high',
+      category: errorHandler.ErrorCategories.CONFIGURATION,
+      severity: errorHandler.ErrorSeverity.HIGH,
       actionable: true
     });
   },
@@ -662,7 +695,7 @@ export const errorHandler = {
   createUserFriendlyMessage: (errorInfo) => {
     let message = errorInfo.userMessage || errorInfo.message || 'An error occurred';
 
-    if (errorInfo.category === 'configuration') {
+    if (errorInfo.category === 'configuration' || errorInfo.category === 'validation') {
       message += '\n\nPlease check your API key format and configuration.';
     }
 
@@ -701,48 +734,49 @@ export const errorHandler = {
    * @returns {Object} Recovery action information
    */
   createRecoveryAction: (errorInfo) => {
-    const canRecover = errorInfo.category !== 'system' && errorInfo.severity !== 'critical';
+    const canRecover = errorInfo.category !== errorHandler.ErrorCategories.SYSTEM &&
+      errorInfo.severity !== errorHandler.ErrorSeverity.CRITICAL;
 
-    const actions = [];
+    let primaryAction = {
+      action: 'retry',
+      label: 'Try Again',
+      description: 'Retry the operation',
+      priority: 'medium'
+    };
 
-    // Add category-specific recovery actions
     switch (errorInfo.category) {
-      case 'configuration':
-        actions.push({
-          type: 'check_config',
-          label: 'Check Configuration',
-          description: 'Verify your configuration settings',
+      case errorHandler.ErrorCategories.CONFIGURATION:
+      case errorHandler.ErrorCategories.VALIDATION:
+        primaryAction = {
+          action: 'open_settings',
+          label: 'Open Settings',
+          description: 'Review your API key configuration in Settings',
           priority: 'high'
-        });
+        };
         break;
-      case 'validation':
-        actions.push({
-          type: 'fix_validation',
-          label: 'Fix Validation Errors',
-          description: 'Correct the validation errors and try again',
-          priority: 'high'
-        });
-        break;
-      case 'network':
-        actions.push({
-          type: 'retry',
+      case errorHandler.ErrorCategories.NETWORK:
+        primaryAction = {
+          action: 'retry',
           label: 'Retry Request',
           description: 'Try the request again',
           priority: 'medium'
-        });
+        };
         break;
       default:
-        actions.push({
-          type: 'generic_retry',
+        primaryAction = {
+          action: 'retry',
           label: 'Try Again',
           description: 'Retry the operation',
           priority: 'medium'
-        });
+        };
     }
 
     return {
       canRecover,
-      actions,
+      action: primaryAction.action,
+      label: primaryAction.label,
+      description: primaryAction.description,
+      priority: primaryAction.priority,
       autoRetry: errorInfo.canRetry || false,
       retryDelay: errorInfo.isTemporary ? 5000 : 0
     };

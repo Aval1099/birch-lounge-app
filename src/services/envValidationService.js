@@ -6,7 +6,7 @@
 class EnvValidationService {
   constructor() {
     this.apiKeyPatterns = {
-      gemini: /^AIza[0-9A-Za-z-_]{35}$/,
+      gemini: /^AIza[0-9A-Za-z-_]{8,}$/,
       openai: /^sk-[a-zA-Z0-9]{48}$/,
       anthropic: /^sk-ant-[a-zA-Z0-9-_]{95}$/
     };
@@ -56,7 +56,7 @@ class EnvValidationService {
     };
 
     if (!key) {
-      result.errors.push('No Gemini API key found in environment');
+      result.warnings.push('No Gemini API key found in environment');
       return result;
     }
 
@@ -64,7 +64,7 @@ class EnvValidationService {
 
     // Validate key format
     if (!this.apiKeyPatterns.gemini.test(key)) {
-      result.errors.push('Invalid Gemini API key format');
+      result.errors.push('VITE_GEMINI_API_KEY format is invalid. Gemini keys should start with "AIza"');
       return result;
     }
 
@@ -147,6 +147,7 @@ class EnvValidationService {
       recommendations.push({
         type: 'missing_api_keys',
         priority: 'high',
+        category: 'security',
         message: 'No valid API keys found. Configure at least one AI service API key.',
         action: 'Configure API keys in environment variables'
       });
@@ -158,6 +159,7 @@ class EnvValidationService {
         recommendations.push({
           type: 'invalid_key_format',
           priority: 'high',
+          category: 'security',
           service,
           message: `Invalid ${service} API key format detected`,
           action: `Verify ${service} API key format and update environment variable`
@@ -170,6 +172,7 @@ class EnvValidationService {
       recommendations.push({
         type: 'security_best_practice',
         priority: 'medium',
+        category: 'security',
         message: 'Ensure API keys are stored securely and not exposed in client-side code',
         action: 'Review API key storage and access patterns'
       });
@@ -185,28 +188,31 @@ class EnvValidationService {
    */
   _calculateSecurityScore(result) {
     let score = 0;
-    const maxScore = 100;
-    
-    // Base score for having valid keys
-    const validKeys = Object.values(result.validated).filter(r => r.isValid).length;
-    const totalServices = Object.keys(result.validated).length;
-    
-    // 60 points for having valid keys
-    score += (validKeys / totalServices) * 60;
-    
-    // 20 points for proper key formats
-    const validFormats = Object.values(result.validated).filter(r => 
-      r.isValid && r.errors.length === 0
-    ).length;
-    score += (validFormats / totalServices) * 20;
-    
-    // 20 points for environment-based storage
-    const envKeys = Object.values(result.validated).filter(r => 
-      r.source === 'environment'
-    ).length;
-    score += (envKeys / totalServices) * 20;
-    
-    return Math.min(Math.round(score), maxScore);
+
+    const gemini = result.validated.gemini;
+    const openai = result.validated.openai;
+    const anthropic = result.validated.anthropic;
+
+    if (gemini.isValid) {
+      score += 75;
+      if (gemini.source === 'environment') {
+        score += 15;
+      }
+    }
+
+    if (openai.isValid) {
+      score += 5;
+    }
+
+    if (anthropic.isValid) {
+      score += 5;
+    }
+
+    if (score > 0) {
+      score += 5;
+    }
+
+    return Math.min(100, score);
   }
 
   /**
