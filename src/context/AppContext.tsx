@@ -126,6 +126,6 @@ export const AppProvider = ({ children, initialState = null }: AppProviderProps)
   );
 };
 
-// Hook moved to src/hooks/useApp.ts to avoid React Fast Refresh issues
+// Hook lives in src/hooks/useApp.ts to avoid React Fast Refresh issues
 
 export default AppContext;
