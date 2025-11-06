@@ -8,6 +8,7 @@ import { memo, useCallback, useState } from 'react';
 
 import { ActionType } from '../../constants';
 import { useApp } from '../../hooks/useApp';
+import { apiKeyService } from '../../services/apiKeyService';
 import { storageService } from '../../services/storageService';
 import { validationService } from '../../services/validation';
 import CachePerformanceDashboard from '../admin/CachePerformanceDashboard';
@@ -42,17 +43,18 @@ const SettingsModal = memo(({ onClose }) => {
     setIsSubmitting(true);
 
     try {
+      const trimmedKey = apiKey.trim();
+
+      if (trimmedKey) {
+        apiKeyService.setApiKey('gemini', trimmedKey);
+      } else {
+        apiKeyService.removeApiKey('gemini');
+      }
+
       dispatch({
         type: ActionType.SET_GEMINI_API_KEY,
-        payload: apiKey.trim()
+        payload: trimmedKey
       });
-
-      // Save to localStorage
-      if (apiKey.trim()) {
-        localStorage.setItem('gemini-api-key', apiKey.trim());
-      } else {
-        localStorage.removeItem('gemini-api-key');
-      }
 
       dispatch({
         type: ActionType.SET_NOTIFICATION,
