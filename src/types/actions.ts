@@ -25,6 +25,7 @@ export const ActionType = {
 
   // Notifications
   SET_NOTIFICATION: 'SET_NOTIFICATION',
+  SHOW_NOTIFICATION: 'SHOW_NOTIFICATION',
   CLEAR_NOTIFICATION: 'CLEAR_NOTIFICATION',
 
   // Recipe management
@@ -125,6 +126,11 @@ export interface SetModalAction {
 
 export interface SetNotificationAction {
   type: typeof ActionType.SET_NOTIFICATION;
+  payload: Notification;
+}
+
+export interface ShowNotificationAction {
+  type: typeof ActionType.SHOW_NOTIFICATION;
   payload: Notification;
 }
 
@@ -233,6 +239,7 @@ export type AppAction =
   | CloseModalAction
   | SetModalAction
   | SetNotificationAction
+  | ShowNotificationAction
   | ClearNotificationAction
   | AddRecipeAction
   | UpdateRecipeAction
