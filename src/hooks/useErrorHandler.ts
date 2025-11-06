@@ -289,15 +289,18 @@ export const useApiErrorHandler = (baseUrl?: string, options: UseErrorHandlerOpt
   ): Promise<T> => {
     const url = baseUrl ? `${baseUrl}${endpoint}` : endpoint;
     
-    return errorHandler.handleAsyncError(async () => {
-      const response = await fetch(url, requestOptions);
-      
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-      }
-      
-      return response.json();
-    }, `API: ${endpoint}`);
+    return errorHandler.handleAsyncError(
+      (async () => {
+        const response = await fetch(url, requestOptions);
+
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        return response.json();
+      })(),
+      `API: ${endpoint}`
+    );
   }, [baseUrl, errorHandler]);
 
   return {

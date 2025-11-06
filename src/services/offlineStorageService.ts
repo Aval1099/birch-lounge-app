@@ -138,7 +138,7 @@ class OfflineStorageService {
    * Check if IndexedDB is available and initialized
    */
   private isIndexedDBAvailable(): boolean {
-    return this.db !== null && typeof window !== 'undefined' && window.indexedDB;
+    return Boolean(this.db && typeof window !== 'undefined' && typeof window.indexedDB !== 'undefined');
   }
 
   /**
@@ -171,7 +171,13 @@ class OfflineStorageService {
     },
     clear: () => {
       try {
-        const keys = Object.keys(localStorage).filter(key => key.startsWith('birch-offline-'));
+        const keys: string[] = [];
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index);
+          if (key && key.startsWith('birch-offline-')) {
+            keys.push(key);
+          }
+        }
         keys.forEach(key => localStorage.removeItem(key));
         return true;
       } catch {
@@ -179,6 +185,39 @@ class OfflineStorageService {
       }
     }
   };
+
+  private getFallbackItems<T>(storeName: string): T[] {
+    if (typeof window === 'undefined' || !('localStorage' in window)) {
+      return [];
+    }
+
+    const items: T[] = [];
+    const prefix = `birch-offline-${storeName}-`;
+
+    try {
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const storageKey = window.localStorage.key(index);
+        if (storageKey && storageKey.startsWith(prefix)) {
+          const fallbackKey = storageKey.replace('birch-offline-', '');
+          const value = this.fallbackStorage.get(fallbackKey);
+          if (value !== null) {
+            items.push(value as T);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load fallback items from localStorage:', error);
+    }
+
+    return items;
+  }
+
+  private promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error ?? new Error('IndexedDB request failed'));
+    });
+  }
 
   /**
    * Generic method to get all items from a store
@@ -188,9 +227,7 @@ class OfflineStorageService {
 
     // Use fallback storage if IndexedDB is not available
     if (!this.isIndexedDBAvailable()) {
-      const key = `${storeName}-${(data as any).id || Date.now()}`;
-      this.fallbackStorage.set(key, data);
-      return;
+      return this.getFallbackItems<T>(storeName);
     }
 
     return new Promise((resolve, reject) => {
@@ -211,8 +248,9 @@ class OfflineStorageService {
 
     // Use fallback storage if IndexedDB is not available
     if (!this.isIndexedDBAvailable()) {
-      const keys = Object.keys(localStorage).filter(key => key.startsWith(`birch-offline-${storeName}-`));
-      return keys.map(key => this.fallbackStorage.get(key.replace('birch-offline-', ''))).filter(Boolean);
+      const identifier = (item as { id?: string }).id ?? Date.now().toString();
+      this.fallbackStorage.set(`${storeName}-${identifier}`, item);
+      return;
     }
 
     return new Promise((resolve, reject) => {
@@ -448,10 +486,14 @@ class OfflineStorageService {
     try {
       await this.ensureInitialized();
 
+      if (!this.isIndexedDBAvailable()) {
+        return { count: 0, size: 0 };
+      }
+
       // Get all cached images from IndexedDB
       const transaction = this.db!.transaction(['images'], 'readonly');
       const store = transaction.objectStore('images');
-      const allImages = await store.getAll();
+      const allImages = await this.promisifyRequest<Array<{ data?: ArrayBuffer }>>(store.getAll());
 
       let totalSize = 0;
       allImages.forEach(image => {
@@ -474,6 +516,11 @@ class OfflineStorageService {
     try {
       await this.ensureInitialized();
 
+      if (!this.isIndexedDBAvailable()) {
+        console.warn('IndexedDB not available, skipping image cache write');
+        return;
+      }
+
       const transaction = this.db!.transaction(['images'], 'readwrite');
       const store = transaction.objectStore('images');
 
@@ -484,7 +531,7 @@ class OfflineStorageService {
         size: imageData.byteLength
       };
 
-      await store.put(imageRecord);
+      await this.promisifyRequest(store.put(imageRecord));
     } catch (error) {
       console.error('Failed to cache image:', error);
       throw error;
@@ -495,9 +542,13 @@ class OfflineStorageService {
     try {
       await this.ensureInitialized();
 
+      if (!this.isIndexedDBAvailable()) {
+        return null;
+      }
+
       const transaction = this.db!.transaction(['images'], 'readonly');
       const store = transaction.objectStore('images');
-      const imageRecord = await store.get(url);
+      const imageRecord = await this.promisifyRequest<{ data?: ArrayBuffer } | undefined>(store.get(url));
 
       return imageRecord?.data || null;
     } catch (error) {
@@ -510,9 +561,13 @@ class OfflineStorageService {
     try {
       await this.ensureInitialized();
 
+      if (!this.isIndexedDBAvailable()) {
+        return;
+      }
+
       const transaction = this.db!.transaction(['images'], 'readwrite');
       const store = transaction.objectStore('images');
-      await store.clear();
+      await this.promisifyRequest(store.clear());
     } catch (error) {
       console.error('Failed to clear image cache:', error);
       throw error;

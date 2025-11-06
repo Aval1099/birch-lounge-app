@@ -53,7 +53,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     const errorContext = enhancedErrorHandler.handle(
       error,
       `React Component: ${this.props.title || 'Unknown'}`,
@@ -163,13 +163,13 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     }));
   };
 
-  componentWillUnmount() {
+  override componentWillUnmount() {
     if (this.autoRetryTimer) {
       clearTimeout(this.autoRetryTimer);
     }
   }
 
-  render() {
+  override render() {
     if (this.state.hasError && this.state.error && this.state.errorContext) {
       // Custom fallback UI
       if (this.props.fallback) {

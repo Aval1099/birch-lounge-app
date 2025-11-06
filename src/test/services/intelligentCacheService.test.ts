@@ -60,6 +60,12 @@ describe('IntelligentCacheService', () => {
     lastMade: new Date().toISOString(),
     rating: 4.5,
     lastSyncedAt: Date.now() - 86400000, // 1 day ago
+    versionMetadata: {
+      versionNumber: '1.0',
+      isMainVersion: true,
+      versionType: 'original',
+      versionStatus: 'published'
+    }
   };
 
   const mockIngredient: Ingredient & { lastSyncedAt?: number } = {

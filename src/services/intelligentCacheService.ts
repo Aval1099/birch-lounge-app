@@ -748,6 +748,14 @@ class IntelligentCacheService {
     this.strategy = strategy;
   }
 
+  getStrategy(): CacheStrategy {
+    return this.strategy;
+  }
+
+  setStrategy(strategy: CacheStrategy): void {
+    this.setCacheStrategy(strategy);
+  }
+
   setMaxCacheSize(size: number): void {
     this.maxCacheSize = size;
   }
@@ -766,6 +774,22 @@ class IntelligentCacheService {
 
   async forceOptimization(): Promise<void> {
     await this.optimizeCache();
+  }
+
+  async preloadItem(itemId: string): Promise<void> {
+    await this.prefetchItem(itemId);
+  }
+
+  updateItemPriority(itemId: string, priority: number): void {
+    const entry = this.cacheEntries.get(itemId);
+    if (entry) {
+      entry.priority = Math.max(0, Math.min(1, priority));
+      this.cacheEntries.set(itemId, entry);
+    }
+  }
+
+  async removeFromCache(itemId: string): Promise<void> {
+    await this.evictEntry(itemId);
   }
 
   async clearCache(): Promise<void> {

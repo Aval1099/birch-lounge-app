@@ -4,6 +4,7 @@
 
 import { cachePerformanceMonitor } from './cachePerformanceMonitor';
 import { intelligentCacheService } from './intelligentCacheService';
+import type { CacheStrategy } from './intelligentCacheService';
 import { performanceMonitor } from './performanceService';
 
 /**
@@ -13,7 +14,7 @@ import { performanceMonitor } from './performanceService';
  */
 class ServiceModeOptimizer {
   private isServiceModeActive = false;
-  private originalCacheStrategy: string = 'intelligent';
+  private originalCacheStrategy: CacheStrategy = 'intelligent';
   private preloadedSearchTerms: Set<string> = new Set();
   private frequentlyAccessedItems: Map<string, number> = new Map();
   private optimizationInterval: NodeJS.Timeout | null = null;
@@ -74,7 +75,7 @@ class ServiceModeOptimizer {
     this.isServiceModeActive = false;
 
     // 1. Restore original cache strategy
-    intelligentCacheService.setStrategy(this.originalCacheStrategy as any);
+    intelligentCacheService.setStrategy(this.originalCacheStrategy);
 
     // 2. Disable enhanced cache monitoring
     cachePerformanceMonitor.disableServiceModeOptimizations();
@@ -277,7 +278,7 @@ class ServiceModeOptimizer {
       .slice(0, 20); // Remove bottom 20 items
 
     for (const [id] of lowPriorityItems) {
-      intelligentCacheService.removeFromCache(id);
+      await intelligentCacheService.removeFromCache(id);
     }
 
     console.log(`🗑️ Removed ${lowPriorityItems.length} low-priority items from cache`);
@@ -295,7 +296,7 @@ class ServiceModeOptimizer {
     const metrics = cachePerformanceMonitor.getMetrics();
     const compliance = cachePerformanceMonitor.getBirchLoungeMetrics();
 
-    const optimizations = [];
+    const optimizations: string[] = [];
     if (this.isServiceModeActive) {
       optimizations.push('Aggressive caching enabled');
       optimizations.push('Frequent items preloaded');
