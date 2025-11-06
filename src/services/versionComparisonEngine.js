@@ -205,50 +205,91 @@ class VersionComparisonEngine {
    * @returns {Object} Instruction comparison result
    */
   compareInstructions(instructionsA, instructionsB) {
-    // Normalize instructions to arrays
     const stepsA = Array.isArray(instructionsA) ? instructionsA : [instructionsA].filter(Boolean);
     const stepsB = Array.isArray(instructionsB) ? instructionsB : [instructionsB].filter(Boolean);
 
     const diff = {
-      hasChanges: stepsA.length !== stepsB.length ||
-        stepsA.some((step, i) => step !== stepsB[i]),
+      hasChanges: false,
       stepChanges: [],
       addedSteps: [],
       removedSteps: [],
       reorderedSteps: []
     };
 
-    if (!diff.hasChanges) {
-      return diff;
-    }
+    let indexA = 0;
+    let indexB = 0;
 
-    // Generate step-by-step diff
-    const maxLength = Math.max(stepsA.length, stepsB.length);
+    while (indexA < stepsA.length || indexB < stepsB.length) {
+      const stepA = stepsA[indexA];
+      const stepB = stepsB[indexB];
 
-    for (let i = 0; i < maxLength; i++) {
-      const stepA = stepsA[i];
-      const stepB = stepsB[i];
-
-      if (stepA && stepB) {
-        if (stepA !== stepB) {
-          diff.stepChanges.push({
-            stepNumber: i + 1,
-            before: stepA,
-            after: stepB,
-            textDiff: this.generateTextDiff(stepA, stepB)
-          });
-        }
-      } else if (stepA && !stepB) {
-        diff.removedSteps.push({
-          stepNumber: i + 1,
-          content: stepA
-        });
-      } else if (!stepA && stepB) {
+      if (stepA === undefined && stepB !== undefined) {
+        diff.hasChanges = true;
         diff.addedSteps.push({
-          stepNumber: i + 1,
+          stepNumber: indexB + 1,
           content: stepB
         });
+        indexB += 1;
+        continue;
       }
+
+      if (stepB === undefined && stepA !== undefined) {
+        diff.hasChanges = true;
+        diff.removedSteps.push({
+          stepNumber: indexA + 1,
+          content: stepA
+        });
+        indexA += 1;
+        continue;
+      }
+
+      if (stepA === stepB) {
+        indexA += 1;
+        indexB += 1;
+        continue;
+      }
+
+      const nextStepA = stepsA[indexA + 1];
+      const nextStepB = stepsB[indexB + 1];
+
+      if (stepB !== undefined && nextStepB === stepA) {
+        diff.hasChanges = true;
+        diff.addedSteps.push({
+          stepNumber: indexB + 1,
+          content: stepB
+        });
+        indexB += 1;
+        continue;
+      }
+
+      if (stepA !== undefined && nextStepA === stepB) {
+        diff.hasChanges = true;
+        diff.removedSteps.push({
+          stepNumber: indexA + 1,
+          content: stepA
+        });
+        indexA += 1;
+        continue;
+      }
+
+      diff.hasChanges = true;
+      diff.stepChanges.push({
+        stepNumber: indexA + 1,
+        before: stepA,
+        after: stepB,
+        textDiff: this.generateTextDiff(stepA || '', stepB || '')
+      });
+      indexA += 1;
+      indexB += 1;
+    }
+
+    if (
+      diff.stepChanges.length === 0 &&
+      diff.addedSteps.length === 0 &&
+      diff.removedSteps.length === 0 &&
+      diff.reorderedSteps.length === 0
+    ) {
+      diff.hasChanges = false;
     }
 
     return diff;

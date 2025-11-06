@@ -196,7 +196,7 @@ describe('VersionComparisonEngine', () => {
 
       expect(diff.hasChanges).toBe(true);
       expect(diff.addedSteps).toHaveLength(1);
-      expect(diff.addedSteps[0].content).toBe('Top with tonic water');
+      expect(diff.addedSteps[0].content).toBe('Add lime juice');
     });
 
     it('should detect removed steps', () => {
