@@ -5,38 +5,52 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { geminiService } from '../../services/geminiService';
-import { 
-  validatePDFFile, 
+import { apiKeyService } from '../../services/apiKeyService';
+import {
+  validatePDFFile,
   parseRecipesFromText,
-  processPDFRecipeBook 
+  processPDFRecipeBook,
 } from '../../services/pdfService';
 
 // Mock the geminiService
 vi.mock('../../services/geminiService', () => ({
   geminiService: {
-    generate: vi.fn()
-  }
+    generate: vi.fn(),
+  },
+}));
+
+vi.mock('../../services/enhancedRecipeParser', () => ({
+  parseRecipesWithIntelligence: vi.fn(async () => {
+    throw new Error('Enhanced parser disabled in tests');
+  }),
+}));
+
+vi.mock('../../services/apiKeyService', () => ({
+  apiKeyService: {
+    getApiKey: vi.fn(),
+  },
 }));
 
 // Mock PDF.js
 vi.mock('pdfjs-dist', () => ({
   getDocument: vi.fn(),
   GlobalWorkerOptions: { workerSrc: '' },
-  version: '3.11.174'
+  version: '3.11.174',
 }));
 
 describe('PDF Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    apiKeyService.getApiKey.mockReturnValue('test-api-key');
     // Mock localStorage
     Object.defineProperty(window, 'localStorage', {
       value: {
         getItem: vi.fn(() => 'test-api-key'),
         setItem: vi.fn(),
         removeItem: vi.fn(),
-        clear: vi.fn()
+        clear: vi.fn(),
       },
-      writable: true
+      writable: true,
     });
   });
 
@@ -48,7 +62,7 @@ describe('PDF Service', () => {
     it('should validate correct PDF file', () => {
       const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
       const result = validatePDFFile(file);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -56,7 +70,7 @@ describe('PDF Service', () => {
     it('should reject non-PDF file type', () => {
       const file = new File(['test'], 'test.txt', { type: 'text/plain' });
       const result = validatePDFFile(file);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('File must be a PDF');
     });
@@ -64,7 +78,7 @@ describe('PDF Service', () => {
     it('should reject file without .pdf extension', () => {
       const file = new File(['test'], 'test.doc', { type: 'application/pdf' });
       const result = validatePDFFile(file);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('File must have .pdf extension');
     });
@@ -74,11 +88,11 @@ describe('PDF Service', () => {
       const largeFile = {
         type: 'application/pdf',
         name: 'large.pdf',
-        size: 60 * 1024 * 1024 // 60MB
+        size: 60 * 1024 * 1024, // 60MB
       };
-      
+
       const result = validatePDFFile(largeFile);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('File size must be less than 50MB');
     });
@@ -92,15 +106,15 @@ describe('PDF Service', () => {
           category: 'Whiskey',
           ingredients: [
             { name: 'Bourbon', amount: '2', unit: 'oz' },
-            { name: 'Simple Syrup', amount: '0.25', unit: 'oz' }
+            { name: 'Simple Syrup', amount: '0.25', unit: 'oz' },
           ],
           instructions: 'Stir with ice and strain',
           glassware: 'Rocks glass',
           garnish: 'Orange peel',
           flavorProfile: ['strong', 'sweet'],
           difficulty: 'Easy',
-          prepTime: 3
-        }
+          prepTime: 3,
+        },
       ];
 
       geminiService.generate.mockResolvedValue(JSON.stringify(mockRecipes));
@@ -157,14 +171,16 @@ describe('PDF Service', () => {
         currentChunk: 1,
         totalChunks: 1,
         progress: 100,
-        recipesFound: 1
+        recipesFound: 1,
       });
     });
   });
 
   describe('processPDFRecipeBook', () => {
     it('should reject invalid PDF file', async () => {
-      const invalidFile = new File(['test'], 'test.txt', { type: 'text/plain' });
+      const invalidFile = new File(['test'], 'test.txt', {
+        type: 'text/plain',
+      });
 
       const result = await processPDFRecipeBook(invalidFile);
 
@@ -174,7 +190,9 @@ describe('PDF Service', () => {
     });
 
     it('should call progress callback during processing', async () => {
-      const validFile = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+      const validFile = new File(['test'], 'test.pdf', {
+        type: 'application/pdf',
+      });
       const progressCallback = vi.fn();
 
       // Mock successful PDF extraction to trigger progress callback
@@ -184,24 +202,28 @@ describe('PDF Service', () => {
           numPages: 1,
           getPage: vi.fn().mockResolvedValue({
             getTextContent: vi.fn().mockResolvedValue({
-              items: [{ str: 'Test recipe content' }]
-            })
-          })
-        })
+              items: [{ str: 'Test recipe content' }],
+            }),
+          }),
+        }),
       });
 
       // Mock AI service to return valid recipes
-      geminiService.generate.mockResolvedValue(JSON.stringify([{
-        name: 'Test Recipe',
-        ingredients: ['Test ingredient'],
-        instructions: 'Test instructions'
-      }]));
+      geminiService.generate.mockResolvedValue(
+        JSON.stringify([
+          {
+            name: 'Test Recipe',
+            ingredients: ['Test ingredient'],
+            instructions: 'Test instructions',
+          },
+        ])
+      );
 
       await processPDFRecipeBook(validFile, progressCallback);
 
       expect(progressCallback).toHaveBeenCalledWith(
         expect.objectContaining({
-          stage: 'extracting'
+          stage: 'extracting',
         })
       );
     });
@@ -210,11 +232,11 @@ describe('PDF Service', () => {
   describe('Text Processing Utilities', () => {
     // Test the internal splitTextIntoChunks function if it's exported
     // For now, we'll test it through the main functions that use it
-    
+
     it('should handle large text by splitting into chunks', async () => {
       // Create a large text that would exceed token limits
       const largeText = 'word '.repeat(2000); // 10,000 characters
-      
+
       const mockRecipes = [{ name: 'Test Recipe' }];
       geminiService.generate.mockResolvedValue(JSON.stringify(mockRecipes));
 
@@ -228,15 +250,17 @@ describe('PDF Service', () => {
 
   describe('Error Handling', () => {
     it('should clean up progress callback on error', async () => {
-      const validFile = new File(['test'], 'test.pdf', { type: 'application/pdf' });
-      
+      const validFile = new File(['test'], 'test.pdf', {
+        type: 'application/pdf',
+      });
+
       // Mock PDF extraction to fail
       const mockPDFJS = await import('pdfjs-dist');
       // Create a rejected promise but mark it as handled to avoid global unhandled rejection noise
       const rejected = Promise.reject(new Error('PDF parsing failed'));
       rejected.catch(() => {});
       mockPDFJS.getDocument.mockReturnValue({
-        promise: rejected
+        promise: rejected,
       });
 
       const result = await processPDFRecipeBook(validFile);
@@ -247,10 +271,10 @@ describe('PDF Service', () => {
     });
 
     it('should handle missing API key gracefully', async () => {
-      window.localStorage.getItem.mockReturnValue(null);
-      
+      apiKeyService.getApiKey.mockReturnValue(null);
+
       const result = await parseRecipesFromText('Test text');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
     });
@@ -258,10 +282,7 @@ describe('PDF Service', () => {
 
   describe('Recipe ID Generation', () => {
     it('should generate unique IDs for recipes', async () => {
-      const mockRecipes = [
-        { name: 'Recipe 1' },
-        { name: 'Recipe 2' }
-      ];
+      const mockRecipes = [{ name: 'Recipe 1' }, { name: 'Recipe 2' }];
 
       geminiService.generate.mockResolvedValue(JSON.stringify(mockRecipes));
 

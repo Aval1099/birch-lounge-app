@@ -3,7 +3,11 @@
 // =============================================================================
 
 import { ActionType, MAX_COMPARISON_ITEMS } from '../constants';
-import { getInitialIngredients, getInitialRecipes, getInitialTechniques } from '../data/initialData';
+import {
+  getInitialIngredients,
+  getInitialRecipes,
+  getInitialTechniques,
+} from '../data/initialData';
 import { validateRecipe, createIngredient } from '../models';
 import { storageService } from '../services/storageService';
 import { safeParseInt } from '../utils';
@@ -17,11 +21,11 @@ export const initialAppState = {
   modal: {
     isOpen: false,
     type: null,
-    data: null
+    data: null,
   },
   notification: {
     message: null,
-    type: null
+    type: null,
   },
   recipes: [],
   ingredients: [],
@@ -31,26 +35,57 @@ export const initialAppState = {
     category: 'All',
     flavorProfile: 'All',
     alcoholContent: 'All',
-    favoritesOnly: false
+    favoritesOnly: false,
   },
   comparison: {
     isActive: false,
-    selectedIds: []
+    selectedIds: [],
   },
   currentMenu: {
     id: null,
     name: '',
-    items: []
+    items: [],
   },
   savedMenus: [],
   batchScaling: {
     recipe: null,
     servings: 1,
-    name: ''
+    name: '',
   },
   savedBatches: [],
   serviceMode: false,
-  geminiApiKey: ''
+  geminiApiKey: '',
+};
+
+/**
+ * Validate and upsert a recipe into state
+ * @param {Object} state - Current state snapshot
+ * @param {Object} recipe - Recipe payload to add or update
+ * @returns {Object} Updated state
+ */
+const upsertRecipe = (state, recipe) => {
+  const { isValid, errors } = validateRecipe(recipe);
+
+  if (!isValid) {
+    return {
+      ...state,
+      notification: {
+        message: errors.join(', '),
+        type: 'error',
+      },
+    };
+  }
+
+  const recipeExists = state.recipes.some(r => r.id === recipe.id);
+  const recipes = recipeExists
+    ? state.recipes.map(r => (r.id === recipe.id ? recipe : r))
+    : [...state.recipes, recipe];
+
+  return {
+    ...state,
+    notification: { message: null, type: null },
+    recipes,
+  };
 };
 
 /**
@@ -75,7 +110,7 @@ export const appReducer = (state, action) => {
         ingredients: savedData?.ingredients || getInitialIngredients(),
         techniques: savedData?.techniques || getInitialTechniques(),
         savedBatches: savedData?.savedBatches || [],
-        isInitialized: true
+        isInitialized: true,
       };
     }
 
@@ -90,26 +125,26 @@ export const appReducer = (state, action) => {
         savedMenus: data?.savedMenus || state.savedMenus,
         savedBatches: data?.savedBatches || state.savedBatches,
         theme: data?.theme || state.theme,
-        isInitialized: true
+        isInitialized: true,
       };
     }
 
     case ActionType.SET_THEME:
       return {
         ...state,
-        theme: action.payload
+        theme: action.payload,
       };
 
     case ActionType.SET_ACTIVE_TAB:
       return {
         ...state,
-        activeTab: action.payload
+        activeTab: action.payload,
       };
 
     case ActionType.SET_MODAL:
       return {
         ...state,
-        modal: action.payload
+        modal: action.payload,
       };
 
     case ActionType.OPEN_MODAL:
@@ -118,8 +153,8 @@ export const appReducer = (state, action) => {
         modal: {
           isOpen: true,
           type: action.payload.type,
-          data: action.payload.data
-        }
+          data: action.payload.data,
+        },
       };
 
     case ActionType.CLOSE_MODAL:
@@ -128,14 +163,15 @@ export const appReducer = (state, action) => {
         modal: {
           isOpen: false,
           type: null,
-          data: null
-        }
+          data: null,
+        },
       };
 
     case ActionType.SET_NOTIFICATION:
+    case ActionType.SHOW_NOTIFICATION:
       return {
         ...state,
-        notification: action.payload
+        notification: action.payload,
       };
 
     case ActionType.UPDATE_FILTERS:
@@ -143,39 +179,20 @@ export const appReducer = (state, action) => {
         ...state,
         filters: {
           ...state.filters,
-          ...action.payload
-        }
+          ...action.payload,
+        },
       };
 
-    case ActionType.SAVE_RECIPE: {
-      const recipe = action.payload;
-      const { isValid, errors } = validateRecipe(recipe);
+    case ActionType.ADD_RECIPE:
+      return upsertRecipe(state, action.payload);
 
-      if (!isValid) {
-        return {
-          ...state,
-          notification: {
-            message: errors.join(', '),
-            type: 'error'
-          }
-        };
-      }
-
-      const recipeExists = state.recipes.some(r => r.id === recipe.id);
-
-      return {
-        ...state,
-        notification: { message: null, type: null },
-        recipes: recipeExists
-          ? state.recipes.map(r => r.id === recipe.id ? recipe : r)
-          : [...state.recipes, recipe]
-      };
-    }
+    case ActionType.SAVE_RECIPE:
+      return upsertRecipe(state, action.payload);
 
     case ActionType.DELETE_RECIPE:
       return {
         ...state,
-        recipes: state.recipes.filter(r => r.id !== action.payload)
+        recipes: state.recipes.filter(r => r.id !== action.payload),
       };
 
     case ActionType.TOGGLE_FAVORITE:
@@ -185,7 +202,7 @@ export const appReducer = (state, action) => {
           r.id === action.payload.recipeId
             ? { ...r, isFavorite: action.payload.isFavorite }
             : r
-        )
+        ),
       };
 
     case ActionType.SAVE_INGREDIENT: {
@@ -195,16 +212,19 @@ export const appReducer = (state, action) => {
         return {
           ...state,
           notification: {
-            message: "Ingredient name is required.",
-            type: 'error'
-          }
+            message: 'Ingredient name is required.',
+            type: 'error',
+          },
         };
       }
 
-      const ingredientExists = state.ingredients.some(i => i.id === ingredient.id);
-      const nameCollision = state.ingredients.some(i =>
-        i.name.toLowerCase() === ingredient.name.toLowerCase() &&
-        i.id !== ingredient.id
+      const ingredientExists = state.ingredients.some(
+        i => i.id === ingredient.id
+      );
+      const nameCollision = state.ingredients.some(
+        i =>
+          i.name.toLowerCase() === ingredient.name.toLowerCase() &&
+          i.id !== ingredient.id
       );
 
       if (nameCollision) {
@@ -212,8 +232,8 @@ export const appReducer = (state, action) => {
           ...state,
           notification: {
             message: `An ingredient named "${ingredient.name}" already exists.`,
-            type: 'error'
-          }
+            type: 'error',
+          },
         };
       }
 
@@ -221,18 +241,20 @@ export const appReducer = (state, action) => {
         ...state,
         notification: {
           message: `${ingredient.name} saved.`,
-          type: 'success'
+          type: 'success',
         },
         ingredients: ingredientExists
-          ? state.ingredients.map(i => i.id === ingredient.id ? ingredient : i)
-          : [...state.ingredients, ingredient]
+          ? state.ingredients.map(i =>
+              i.id === ingredient.id ? ingredient : i
+            )
+          : [...state.ingredients, ingredient],
       };
     }
 
     case ActionType.DELETE_INGREDIENT:
       return {
         ...state,
-        ingredients: state.ingredients.filter(i => i.id !== action.payload)
+        ingredients: state.ingredients.filter(i => i.id !== action.payload),
       };
 
     case ActionType.TOGGLE_COMPARISON_MODE:
@@ -241,8 +263,10 @@ export const appReducer = (state, action) => {
         comparison: {
           ...state.comparison,
           isActive: !state.comparison.isActive,
-          selectedIds: state.comparison.isActive ? [] : state.comparison.selectedIds
-        }
+          selectedIds: state.comparison.isActive
+            ? []
+            : state.comparison.selectedIds,
+        },
       };
 
     case ActionType.TOGGLE_COMPARE_SELECTION: {
@@ -265,8 +289,8 @@ export const appReducer = (state, action) => {
         ...state,
         comparison: {
           ...state.comparison,
-          selectedIds: newIds
-        }
+          selectedIds: newIds,
+        },
       };
     }
 
@@ -275,8 +299,8 @@ export const appReducer = (state, action) => {
         ...state,
         currentMenu: {
           ...state.currentMenu,
-          ...action.payload
-        }
+          ...action.payload,
+        },
       };
 
     case ActionType.ADD_RECIPE_TO_MENU: {
@@ -292,8 +316,8 @@ export const appReducer = (state, action) => {
           ...state,
           currentMenu: {
             ...state.currentMenu,
-            items: [...state.currentMenu.items, recipe]
-          }
+            items: [...state.currentMenu.items, recipe],
+          },
         };
       } else {
         // Add to saved menu
@@ -307,7 +331,7 @@ export const appReducer = (state, action) => {
 
         const updatedMenu = {
           ...targetMenu,
-          items: [...targetMenu.items, recipe]
+          items: [...targetMenu.items, recipe],
         };
 
         const updatedSavedMenus = [...state.savedMenus];
@@ -315,7 +339,7 @@ export const appReducer = (state, action) => {
 
         return {
           ...state,
-          savedMenus: updatedSavedMenus
+          savedMenus: updatedSavedMenus,
         };
       }
     }
@@ -325,8 +349,8 @@ export const appReducer = (state, action) => {
         ...state,
         currentMenu: {
           ...state.currentMenu,
-          items: state.currentMenu.items.filter(i => i.id !== action.payload)
-        }
+          items: state.currentMenu.items.filter(i => i.id !== action.payload),
+        },
       };
 
     case ActionType.CLEAR_CURRENT_MENU:
@@ -335,8 +359,8 @@ export const appReducer = (state, action) => {
         currentMenu: {
           id: null,
           name: '',
-          items: []
-        }
+          items: [],
+        },
       };
 
     case ActionType.SAVE_CURRENT_MENU: {
@@ -347,26 +371,26 @@ export const appReducer = (state, action) => {
         ...state,
         notification: { message: null, type: null },
         savedMenus: menuExists
-          ? state.savedMenus.map(m => m.id === menuToSave.id ? menuToSave : m)
+          ? state.savedMenus.map(m => (m.id === menuToSave.id ? menuToSave : m))
           : [...state.savedMenus, menuToSave],
         currentMenu: {
           id: null,
           name: '',
-          items: []
-        }
+          items: [],
+        },
       };
     }
 
     case ActionType.LOAD_SAVED_MENU:
       return {
         ...state,
-        currentMenu: { ...action.payload }
+        currentMenu: { ...action.payload },
       };
 
     case ActionType.DELETE_SAVED_MENU:
       return {
         ...state,
-        savedMenus: state.savedMenus.filter(m => m.id !== action.payload)
+        savedMenus: state.savedMenus.filter(m => m.id !== action.payload),
       };
 
     case ActionType.REORDER_MENU_ITEMS:
@@ -374,8 +398,8 @@ export const appReducer = (state, action) => {
         ...state,
         currentMenu: {
           ...state.currentMenu,
-          items: action.payload
-        }
+          items: action.payload,
+        },
       };
 
     case ActionType.SET_BATCH_RECIPE:
@@ -384,8 +408,8 @@ export const appReducer = (state, action) => {
         batchScaling: {
           recipe: action.payload,
           servings: 1,
-          name: ''
-        }
+          name: '',
+        },
       };
 
     case ActionType.UPDATE_BATCH_SERVINGS:
@@ -393,8 +417,8 @@ export const appReducer = (state, action) => {
         ...state,
         batchScaling: {
           ...state.batchScaling,
-          servings: Math.max(1, safeParseInt(action.payload, 1))
-        }
+          servings: Math.max(1, safeParseInt(action.payload, 1)),
+        },
       };
 
     case ActionType.CLEAR_BATCH:
@@ -403,8 +427,8 @@ export const appReducer = (state, action) => {
         batchScaling: {
           recipe: null,
           servings: 1,
-          name: ''
-        }
+          name: '',
+        },
       };
 
     case ActionType.SAVE_BATCH: {
@@ -412,12 +436,14 @@ export const appReducer = (state, action) => {
       const batchExists = state.savedBatches.some(b => b.id === batchToSave.id);
 
       const updatedSavedBatches = batchExists
-        ? state.savedBatches.map(b => b.id === batchToSave.id ? batchToSave : b)
+        ? state.savedBatches.map(b =>
+            b.id === batchToSave.id ? batchToSave : b
+          )
         : [...state.savedBatches, batchToSave];
 
       return {
         ...state,
-        savedBatches: updatedSavedBatches
+        savedBatches: updatedSavedBatches,
       };
     }
 
@@ -428,27 +454,27 @@ export const appReducer = (state, action) => {
         batchScaling: {
           recipe: batchToLoad.recipe,
           servings: batchToLoad.servings,
-          name: batchToLoad.name
-        }
+          name: batchToLoad.name,
+        },
       };
     }
 
     case ActionType.DELETE_BATCH:
       return {
         ...state,
-        savedBatches: state.savedBatches.filter(b => b.id !== action.payload)
+        savedBatches: state.savedBatches.filter(b => b.id !== action.payload),
       };
 
     case ActionType.SET_SERVICE_MODE:
       return {
         ...state,
-        serviceMode: action.payload
+        serviceMode: action.payload,
       };
 
     case ActionType.SET_GEMINI_API_KEY:
       return {
         ...state,
-        geminiApiKey: action.payload
+        geminiApiKey: action.payload,
       };
 
     // Techniques Management Actions
@@ -459,14 +485,14 @@ export const appReducer = (state, action) => {
         return {
           ...state,
           notification: {
-            message: "Technique name is required.",
-            type: 'error'
-          }
+            message: 'Technique name is required.',
+            type: 'error',
+          },
         };
       }
 
-      const nameCollision = state.techniques.some(t =>
-        t.name.toLowerCase() === technique.name.toLowerCase()
+      const nameCollision = state.techniques.some(
+        t => t.name.toLowerCase() === technique.name.toLowerCase()
       );
 
       if (nameCollision) {
@@ -474,8 +500,8 @@ export const appReducer = (state, action) => {
           ...state,
           notification: {
             message: `A technique named "${technique.name}" already exists.`,
-            type: 'error'
-          }
+            type: 'error',
+          },
         };
       }
 
@@ -483,23 +509,25 @@ export const appReducer = (state, action) => {
         ...state,
         notification: {
           message: `${technique.name} technique added.`,
-          type: 'success'
+          type: 'success',
         },
-        techniques: [...state.techniques, technique]
+        techniques: [...state.techniques, technique],
       };
     }
 
     case ActionType.UPDATE_TECHNIQUE: {
       const updatedTechnique = action.payload;
 
-      const techniqueExists = state.techniques.some(t => t.id === updatedTechnique.id);
+      const techniqueExists = state.techniques.some(
+        t => t.id === updatedTechnique.id
+      );
       if (!techniqueExists) {
         return {
           ...state,
           notification: {
-            message: "Technique not found.",
-            type: 'error'
-          }
+            message: 'Technique not found.',
+            type: 'error',
+          },
         };
       }
 
@@ -507,11 +535,11 @@ export const appReducer = (state, action) => {
         ...state,
         notification: {
           message: `${updatedTechnique.name} technique updated.`,
-          type: 'success'
+          type: 'success',
         },
         techniques: state.techniques.map(t =>
           t.id === updatedTechnique.id ? updatedTechnique : t
-        )
+        ),
       };
     }
 
@@ -520,9 +548,9 @@ export const appReducer = (state, action) => {
         ...state,
         techniques: state.techniques.filter(t => t.id !== action.payload),
         notification: {
-          message: "Technique deleted.",
-          type: 'success'
-        }
+          message: 'Technique deleted.',
+          type: 'success',
+        },
       };
 
     case ActionType.TOGGLE_TECHNIQUE_FAVORITE:
@@ -532,7 +560,7 @@ export const appReducer = (state, action) => {
           t.id === action.payload.techniqueId
             ? { ...t, isFavorite: action.payload.isFavorite }
             : t
-        )
+        ),
       };
 
     default:

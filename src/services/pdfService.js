@@ -4,17 +4,18 @@
  * Enhanced with intelligent recipe parsing and standardization
  */
 
+import { apiKeyService } from './apiKeyService';
 import { parseRecipesWithIntelligence } from './enhancedRecipeParser';
 import { geminiService } from './geminiService';
 
 /**
  * Extract text from PDF file using PDF.js
  */
-export const extractTextFromPDF = async (file) => {
+export const extractTextFromPDF = async file => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
-    reader.onload = async (e) => {
+    reader.onload = async e => {
       try {
         // Dynamically import PDF.js
         const pdfjsLib = await import('pdfjs-dist');
@@ -33,18 +34,16 @@ export const extractTextFromPDF = async (file) => {
           const page = await pdf.getPage(pageNum);
           const textContent = await page.getTextContent();
 
-          const pageText = textContent.items
-            .map(item => item.str)
-            .join(' ');
+          const pageText = textContent.items.map(item => item.str).join(' ');
 
-          fullText += `${pageText  }\n\n`;
+          fullText += `${pageText}\n\n`;
 
           // Report progress
           if (window.pdfProgressCallback) {
             window.pdfProgressCallback({
               currentPage: pageNum,
               totalPages,
-              progress: Math.round((pageNum / totalPages) * 100)
+              progress: Math.round((pageNum / totalPages) * 100),
             });
           }
         }
@@ -52,13 +51,12 @@ export const extractTextFromPDF = async (file) => {
         resolve({
           text: fullText,
           totalPages,
-          success: true
+          success: true,
         });
-
       } catch (error) {
         reject({
           error: error.message,
-          success: false
+          success: false,
         });
       }
     };
@@ -66,7 +64,7 @@ export const extractTextFromPDF = async (file) => {
     reader.onerror = () => {
       reject({
         error: 'Failed to read PDF file',
-        success: false
+        success: false,
       });
     };
 
@@ -87,15 +85,17 @@ export const parseRecipesFromText = async (text, progressCallback) => {
         recipes: result.recipes,
         success: true,
         totalFound: result.totalFound,
-        qualityScore: result.qualityScore
+        qualityScore: result.qualityScore,
       };
     } else {
       throw new Error(result.error);
     }
-
   } catch (error) {
     // Fallback to basic parsing if enhanced parsing fails
-    console.warn('Enhanced parsing failed, falling back to basic parsing:', error);
+    console.warn(
+      'Enhanced parsing failed, falling back to basic parsing:',
+      error
+    );
     return await parseRecipesFromTextBasic(text, progressCallback);
   }
 };
@@ -108,6 +108,22 @@ const parseRecipesFromTextBasic = async (text, progressCallback) => {
     // Split text into chunks to avoid token limits
     const chunks = splitTextIntoChunks(text, 4000);
     const allRecipes = [];
+
+    let apiKey;
+    try {
+      apiKey = apiKeyService.getApiKey('gemini');
+    } catch (error) {
+      console.warn('Failed to retrieve Gemini API key:', error);
+      apiKey = null;
+    }
+
+    if (!apiKey) {
+      return {
+        error: 'Gemini API key not configured',
+        success: false,
+        recipes: [],
+      };
+    }
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
@@ -145,11 +161,7 @@ const parseRecipesFromTextBasic = async (text, progressCallback) => {
         ${chunk}
       `;
 
-      const response = await geminiService.generate(
-        localStorage.getItem('geminiApiKey') || '',
-        prompt,
-        false
-      );
+      const response = await geminiService.generate(apiKey, prompt, false);
 
       try {
         // Parse AI response as JSON
@@ -179,7 +191,7 @@ const parseRecipesFromTextBasic = async (text, progressCallback) => {
           currentChunk: i + 1,
           totalChunks: chunks.length,
           progress: Math.round(((i + 1) / chunks.length) * 100),
-          recipesFound: allRecipes.length
+          recipesFound: allRecipes.length,
         });
       }
     }
@@ -192,21 +204,20 @@ const parseRecipesFromTextBasic = async (text, progressCallback) => {
       isFavorite: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      yields: 1
+      yields: 1,
     }));
 
     return {
       recipes: processedRecipes,
       success: true,
       totalFound: processedRecipes.length,
-      qualityScore: 75 // Default quality score for basic parsing
+      qualityScore: 75, // Default quality score for basic parsing
     };
-
   } catch (error) {
     return {
       error: error.message,
       success: false,
-      recipes: []
+      recipes: [],
     };
   }
 };
@@ -220,11 +231,14 @@ const splitTextIntoChunks = (text, maxChunkSize) => {
   let currentChunk = '';
 
   for (const word of words) {
-    if ((currentChunk + word).length > maxChunkSize && currentChunk.length > 0) {
+    if (
+      (currentChunk + word).length > maxChunkSize &&
+      currentChunk.length > 0
+    ) {
       chunks.push(currentChunk.trim());
-      currentChunk = `${word  } `;
+      currentChunk = `${word} `;
     } else {
-      currentChunk += `${word  } `;
+      currentChunk += `${word} `;
     }
   }
 
@@ -239,13 +253,13 @@ const splitTextIntoChunks = (text, maxChunkSize) => {
  * Generate unique recipe ID
  */
 const generateRecipeId = () => {
-  return `recipe_${  Date.now()  }_${  Math.random().toString(36).substr(2, 9)}`;
+  return `recipe_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
 /**
  * Validate PDF file
  */
-export const validatePDFFile = (file) => {
+export const validatePDFFile = file => {
   const errors = [];
 
   // Check file type
@@ -266,7 +280,7 @@ export const validatePDFFile = (file) => {
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
@@ -282,11 +296,11 @@ export const processPDFRecipeBook = async (file, progressCallback) => {
     }
 
     // Set up progress tracking
-    window.pdfProgressCallback = (progress) => {
+    window.pdfProgressCallback = progress => {
       if (progressCallback) {
         progressCallback({
           stage: 'extracting',
-          ...progress
+          ...progress,
         });
       }
     };
@@ -301,11 +315,11 @@ export const processPDFRecipeBook = async (file, progressCallback) => {
     // Parse recipes from text
     const parsingResult = await parseRecipesFromText(
       extractionResult.text,
-      (progress) => {
+      progress => {
         if (progressCallback) {
           progressCallback({
             stage: 'parsing',
-            ...progress
+            ...progress,
           });
         }
       }
@@ -320,22 +334,22 @@ export const processPDFRecipeBook = async (file, progressCallback) => {
       totalPages: extractionResult.totalPages,
       totalRecipes: parsingResult.totalFound,
       qualityScore: parsingResult.qualityScore || 75,
-      message: `Successfully extracted ${parsingResult.totalFound} recipes from ${extractionResult.totalPages} pages with ${parsingResult.qualityScore || 75}% quality score`
+      message: `Successfully extracted ${parsingResult.totalFound} recipes from ${extractionResult.totalPages} pages with ${parsingResult.qualityScore || 75}% quality score`,
     };
-
   } catch (error) {
     // Clean up
     window.pdfProgressCallback = null;
 
     // Normalize error message whether we caught an Error or a plain object
-    const message = (error && typeof error === 'object' && 'error' in error)
-      ? error.error
-      : (error && error.message) || String(error);
+    const message =
+      error && typeof error === 'object' && 'error' in error
+        ? error.error
+        : (error && error.message) || String(error);
 
     return {
       success: false,
       error: message,
-      recipes: []
+      recipes: [],
     };
   }
 };
