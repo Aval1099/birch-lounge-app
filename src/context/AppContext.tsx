@@ -126,9 +126,6 @@ export const AppProvider = ({ children, initialState = null }: AppProviderProps)
   );
 };
 
-/**
- * Companion hook is defined in src/hooks/useApp.ts.
- * Keeping the hook separate avoids React Fast Refresh loops.
- */
+// Companion hook lives in src/hooks/useApp.ts to avoid React Fast Refresh loops.
 
 export default AppContext;
