@@ -79,7 +79,6 @@ ehthumbs.db
 .roo/
 
 # Package manager files
-yarn.lock
 package-lock.json
 pnpm-lock.yaml
 
@@ -123,3 +122,7 @@ vulnerability-report.json
 .idea/workspace.xml
 *.sublime-workspace
 .vercel
+
+# Yarn metadata
+.yarn/
+
