@@ -2,6 +2,9 @@
   "name": "birch-lounge-app",
   "private": true,
   "version": "0.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "type": "module",
   "scripts": {
     "rebuild-frontend": "node scripts/automated-frontend-rebuild.js && npm run build && npm run lint:fix",
@@ -89,7 +92,7 @@
     "remark-html": "^16.0.1",
     "tailwind-merge": "^3.3.1",
     "web-vitals": "^5.1.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@axe-core/react": "^4.10.2",
@@ -145,5 +148,6 @@
     "vite-plugin-pwa": "^1.0.3",
     "vitest": "^3.2.4",
     "workbox-window": "^7.3.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
