@@ -7,7 +7,7 @@ import VibrantRecipeCard from './VibrantRecipeCard';
 
 const VibrantRecipeGrid = () => {
   const { state, dispatch } = useApp();
-  const { recipes, filters } = state;
+  const { recipes, filters, currentMenu } = state;
 
   // Filter recipes based on current filters
   const filteredRecipes = recipes.filter(recipe => {
@@ -46,9 +46,30 @@ const VibrantRecipeGrid = () => {
   };
 
   const handleAddToMenu = (recipe) => {
+    const alreadyInMenu = currentMenu.items.some(item => item.id === recipe.id);
+
+    if (alreadyInMenu) {
+      dispatch({
+        type: ActionType.SET_NOTIFICATION,
+        payload: {
+          message: `${recipe.name} is already in the current menu.`,
+          type: 'warning'
+        }
+      });
+      return;
+    }
+
     dispatch({
-      type: ActionType.ADD_TO_MENU,
-      payload: recipe
+      type: ActionType.ADD_RECIPE_TO_MENU,
+      payload: { menuId: 'current', recipe }
+    });
+
+    dispatch({
+      type: ActionType.SET_NOTIFICATION,
+      payload: {
+        message: `${recipe.name} added to the current menu.`,
+        type: 'success'
+      }
     });
   };
 

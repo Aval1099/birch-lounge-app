@@ -186,6 +186,18 @@ export interface MenuRecipe {
 }
 
 /**
+ * UI-facing menu state stored in context
+ */
+export interface MenuState {
+  id: string | null;
+  name: string;
+  items: Recipe[];
+  createdAt?: number;
+  updatedAt?: number;
+  category?: string;
+}
+
+/**
  * Batch scaling interface
  */
 export interface BatchScaling {
@@ -214,7 +226,15 @@ export type Theme = 'light' | 'dark';
 /**
  * Tab type
  */
-export type TabId = 'recipes' | 'ingredients' | 'menus' | 'techniques' | 'batch' | 'service' | 'ai';
+export type TabId =
+  | 'recipes'
+  | 'ingredients'
+  | 'menus'
+  | 'techniques'
+  | 'batch'
+  | 'service'
+  | 'ai'
+  | 'demo';
 
 /**
  * Notification type
@@ -270,8 +290,8 @@ export interface AppState {
   techniques: Technique[];
   filters: Filters;
   comparison: Comparison;
-  currentMenu: Menu;
-  savedMenus: Menu[];
+  currentMenu: MenuState;
+  savedMenus: MenuState[];
   batchScaling: BatchScaling;
   savedBatches: SavedBatch[];
   serviceMode: boolean;
