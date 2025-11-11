@@ -20,11 +20,8 @@ const {
   mockGetStorageStats,
   mockClearAllData
 } = vi.hoisted(() => {
-  const createAsyncMock = <T>(defaultValue: T) => {
-    const fn = vi.fn<[], Promise<T>>();
-    fn.mockResolvedValue(defaultValue);
-    return fn;
-  };
+  const createAsyncMock = <T>(defaultValue: T) =>
+    vi.fn<() => Promise<T>>(async () => defaultValue);
 
   return {
     mockGetCachedRecipes: createAsyncMock<unknown[]>([]),
