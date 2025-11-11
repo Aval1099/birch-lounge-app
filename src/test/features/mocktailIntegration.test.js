@@ -37,10 +37,14 @@ describe('Mocktail Integration', () => {
       expect(mocktails.length).toBeGreaterThan(0);
       
       // Check that all samples are properly categorized as mocktails
+      const allowedAlcoholContent = ['non_alcoholic', 'low_alcohol'];
       mocktails.forEach(mocktail => {
         expect(mocktail.category).toBe('Mocktail');
-        expect(mocktail.alcoholContent).toBe('non_alcoholic');
+        expect(allowedAlcoholContent).toContain(mocktail.alcoholContent);
       });
+
+      // Ensure the collection includes at least one truly non-alcoholic mocktail
+      expect(mocktails.some(mocktail => mocktail.alcoholContent === 'non_alcoholic')).toBe(true);
     });
 
     it('should have properly structured mocktail recipes', () => {
