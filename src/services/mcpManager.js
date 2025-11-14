@@ -9,7 +9,7 @@ import { mcpGitHubService } from './mcpGitHubService.js';
 import { mcpNotionService } from './mcpNotionService.js';
 import { mcpOpenAIService } from './mcpOpenAIService.js';
 import { mcpSearchService } from './mcpSearchService.js';
-import { mcpWebFetchService } from './mcpWebFetchService.js';
+import { mcpWebFetchClient } from './mcpWebFetchClient.js';
 
 class MCPManager {
   constructor() {
@@ -27,7 +27,7 @@ class MCPManager {
    */
   registerServices() {
     this.services.set('webFetch', {
-      service: mcpWebFetchService,
+      service: mcpWebFetchClient,
       priority: 'high',
       category: 'recipe-management',
       description: 'Web-based recipe discovery and import'

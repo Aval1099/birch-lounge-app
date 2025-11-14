@@ -2,7 +2,7 @@
   "mcpServers": {
     "birch-lounge-web-fetch": {
       "command": "node",
-      "args": ["src/services/mcpWebFetchService.js"],
+      "args": ["server/mcpWebFetchService.js"],
       "env": {
         "WEB_FETCH_ALLOWED_DOMAINS": "liquor.com,diffordsguide.com,punchdrink.com,cocktaildb.com,thespruceeats.com",
         "WEB_FETCH_RATE_LIMIT": "30"

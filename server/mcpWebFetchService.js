@@ -6,8 +6,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-import { apiKeyService } from './apiKeyService.js';
-import { enhancedRecipeParser } from './enhancedRecipeParser.js';
+import { enhancedRecipeParser } from '../src/services/enhancedRecipeParser.js';
 
 class MCPWebFetchService {
   constructor() {
@@ -388,5 +387,6 @@ class MCPWebFetchService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance and class for server usage
 export const mcpWebFetchService = new MCPWebFetchService();
+export { MCPWebFetchService };

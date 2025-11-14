@@ -8,7 +8,7 @@ import { useState, useCallback, memo } from 'react';
 
 import { ActionType } from '../../constants';
 import { useApp } from '../../hooks/useApp';
-import { mcpWebFetchService } from '../../services/mcpWebFetchService';
+import { mcpWebFetchClient } from '../../services/mcpWebFetchClient';
 import { Button, Input, Modal, ProgressBar, Toast } from '../ui';
 
 const RecipeImporter = memo(({ isOpen, onClose }) => {
@@ -34,7 +34,7 @@ const RecipeImporter = memo(({ isOpen, onClose }) => {
     setErrors([]);
 
     try {
-      const recipe = await mcpWebFetchService.fetchRecipe(singleUrl.trim());
+      const recipe = await mcpWebFetchClient.fetchRecipe(singleUrl.trim());
       
       if (recipe) {
         // Add recipe to app state
@@ -77,7 +77,7 @@ const RecipeImporter = memo(({ isOpen, onClose }) => {
     setResults(null);
 
     try {
-      const result = await mcpWebFetchService.batchFetchRecipes(urls, (progressData) => {
+      const result = await mcpWebFetchClient.batchFetchRecipes(urls, (progressData) => {
         setProgress(progressData);
       });
 
@@ -129,7 +129,7 @@ const RecipeImporter = memo(({ isOpen, onClose }) => {
     setSearchResults([]);
 
     try {
-      const results = await mcpWebFetchService.searchRecipes(searchQuery.trim());
+      const results = await mcpWebFetchClient.searchRecipes(searchQuery.trim());
       setSearchResults(results);
     } catch (error) {
       setErrors([{ url: 'search', error: error.message }]);
@@ -150,7 +150,7 @@ const RecipeImporter = memo(({ isOpen, onClose }) => {
     setErrors([]);
 
     try {
-      const result = await mcpWebFetchService.batchFetchRecipes(urlsToImport, (progressData) => {
+      const result = await mcpWebFetchClient.batchFetchRecipes(urlsToImport, (progressData) => {
         setProgress(progressData);
       });
 
