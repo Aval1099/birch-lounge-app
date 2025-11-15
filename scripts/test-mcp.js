@@ -53,8 +53,8 @@ async function testWebFetchService() {
     logInfo('Testing service file exists...');
 
     // Check if service file exists
-    if (fs.existsSync('src/services/mcpWebFetchService.js')) {
-      logSuccess('Web Fetch service file exists');
+    if (fs.existsSync('src/services/mcpWebFetchClient.js')) {
+      logSuccess('Web Fetch client wrapper exists');
 
       // Test basic URL validation logic
       const testUrl = 'https://www.liquor.com/recipes/gin-and-tonic/';
