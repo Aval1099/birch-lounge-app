@@ -23,9 +23,24 @@ export const apiKeyService = {
   _envPrefix: 'VITE_',
 
   /**
+   * Ensure internal storage Maps exist. Helpful for tests that partially mock the service.
+   * @private
+   */
+  _ensureInternalStores: () => {
+    if (!(apiKeyService._apiKeyStore instanceof Map)) {
+      apiKeyService._apiKeyStore = new Map();
+    }
+
+    if (!(apiKeyService._keyRotationTimestamps instanceof Map)) {
+      apiKeyService._keyRotationTimestamps = new Map();
+    }
+  },
+
+  /**
    * Initialize the API key service
    */
   init: () => {
+    apiKeyService._ensureInternalStores();
     // Reset in-memory storage to simulate a fresh session
     apiKeyService._apiKeyStore.clear();
     apiKeyService._keyRotationTimestamps.clear();
@@ -47,6 +62,7 @@ export const apiKeyService = {
    * @returns {boolean} Success status
    */
   setApiKey: (serviceName, apiKey, options = {}) => {
+    apiKeyService._ensureInternalStores();
     if (!serviceName || typeof serviceName !== 'string') {
       throw new Error('Service name is required and must be a string');
     }
@@ -94,6 +110,7 @@ export const apiKeyService = {
    * @returns {string|null} The API key or null if not found
    */
   getApiKey: (serviceName) => {
+    apiKeyService._ensureInternalStores();
     if (!serviceName || typeof serviceName !== 'string') {
       throw new Error('Service name is required and must be a string');
     }
@@ -136,6 +153,7 @@ export const apiKeyService = {
    * @returns {boolean} Success status
    */
   removeApiKey: (serviceName) => {
+    apiKeyService._ensureInternalStores();
     if (!serviceName || typeof serviceName !== 'string') {
       throw new Error('Service name is required and must be a string');
     }
@@ -166,6 +184,7 @@ export const apiKeyService = {
    * @returns {boolean} Success status
    */
   clearAllKeys: () => {
+    apiKeyService._ensureInternalStores();
     try {
       apiKeyService._apiKeyStore.clear();
       apiKeyService._keyRotationTimestamps.clear();
@@ -188,6 +207,7 @@ export const apiKeyService = {
    * @returns {Object} Service status information
    */
   getStatus: () => {
+    apiKeyService._ensureInternalStores();
     const services = Array.from(apiKeyService._apiKeyStore.keys());
     const envServices = [];
 
@@ -215,6 +235,7 @@ export const apiKeyService = {
    * @returns {boolean} Success status
    */
   rotateApiKey: (serviceName, newApiKey) => {
+    apiKeyService._ensureInternalStores();
     if (!serviceName || typeof serviceName !== 'string') {
       throw new Error('Service name is required and must be a string');
     }
@@ -249,6 +270,7 @@ export const apiKeyService = {
    * @returns {Object} Rotation information
    */
   getKeyRotationInfo: (serviceName) => {
+    apiKeyService._ensureInternalStores();
     const sanitizedServiceName = apiKeyService._sanitizeServiceName(serviceName);
     const timestamp = apiKeyService._keyRotationTimestamps.get(sanitizedServiceName);
     const stored = apiKeyService._apiKeyStore.get(sanitizedServiceName);
@@ -348,6 +370,7 @@ export const apiKeyService = {
    * @private
    */
   _setupKeyCleanup: () => {
+    apiKeyService._ensureInternalStores();
     // Clean up expired keys immediately
     apiKeyService._cleanupExpiredKeys();
 
@@ -366,6 +389,7 @@ export const apiKeyService = {
    * @private
    */
   _cleanupExpiredKeys: () => {
+    apiKeyService._ensureInternalStores();
     const now = Date.now();
     const expiredKeys = [];
 
