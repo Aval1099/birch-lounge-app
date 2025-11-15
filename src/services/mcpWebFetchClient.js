@@ -35,6 +35,11 @@ class MCPWebFetchClient {
     }
 
     const service = await this.getServerService();
+
+    if (!service.isConnected && typeof service.initialize === 'function') {
+      await service.initialize();
+    }
+
     this.isConnected = service.isConnected;
     return this.isConnected;
   }
