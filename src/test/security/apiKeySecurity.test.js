@@ -126,6 +126,23 @@ describe('API Key Security Tests', () => {
       expect(apiKeyService.hasApiKey('gemini')).toBe(false);
       expect(apiKeyService.hasApiKey('openai')).toBe(false);
     });
+
+    it('should recover if internal stores are tampered with', () => {
+      apiKeyService._apiKeyStore = undefined;
+      apiKeyService._keyRotationTimestamps = undefined;
+
+      expect(() => {
+        apiKeyService.setApiKey('gemini', 'AIzaRecoveryKey123456789');
+      }).not.toThrow();
+
+      apiKeyService._apiKeyStore = undefined;
+
+      expect(() => {
+        apiKeyService.getApiKey('gemini');
+      }).not.toThrow();
+
+      expect(apiKeyService.getApiKey('gemini')).toBeNull();
+    });
   });
 
   describe('Environment Variable Validation', () => {
