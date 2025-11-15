@@ -35,9 +35,8 @@ class MCPWebFetchClient {
     }
 
     const service = await this.getServerService();
-    const initialized = await service.initialize();
-    this.isConnected = initialized;
-    return initialized;
+    this.isConnected = service.isConnected;
+    return this.isConnected;
   }
 
   /**
