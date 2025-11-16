@@ -35,6 +35,9 @@ class MCPWebFetchClient {
     }
 
     const service = await this.getServerService();
+    if (!service.isConnected) {
+      await service.initialize();
+    }
     this.isConnected = service.isConnected;
     return this.isConnected;
   }
@@ -182,16 +185,18 @@ class MCPWebFetchClient {
     }
 
     if (!this.serverServicePromise) {
-      this.serverServicePromise = import('../../server/mcpWebFetchService.js').then(async (module) => {
-        const serviceInstance = module.mcpWebFetchService || new module.MCPWebFetchService();
-        if (!serviceInstance.isConnected) {
-          await serviceInstance.initialize();
-        }
-        return serviceInstance;
+      this.serverServicePromise = import('../../server/mcpWebFetchService.js').then((module) => {
+        return module.mcpWebFetchService || new module.MCPWebFetchService();
       });
     }
 
-    return this.serverServicePromise;
+    const service = await this.serverServicePromise;
+
+    if (!service.isConnected) {
+      await service.initialize();
+    }
+
+    return service;
   }
 
   /**
