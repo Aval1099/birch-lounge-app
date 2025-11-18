@@ -87,8 +87,18 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   private performanceObserver: PerformanceObserver | null = null;
   private memoryMonitorInterval: NodeJS.Timeout | null = null;
 
+  private isBrowserEnvironment(): boolean {
+    return typeof window !== 'undefined' && typeof performance !== 'undefined' && typeof navigator !== 'undefined';
+  }
+
   initialize(config: Partial<PerformanceConfig> = {}): void {
     this.config = { ...DEFAULT_CONFIG, ...config };
+
+    if (!this.isBrowserEnvironment()) {
+      this.config.enabled = false;
+      console.warn('Performance monitoring disabled: browser APIs unavailable');
+      return;
+    }
 
     if (!this.config.enabled) return;
 
@@ -105,6 +115,8 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   }
 
   private setupWebVitalsMonitoring(): void {
+    if (!this.isBrowserEnvironment()) return;
+
     // Largest Contentful Paint (LCP)
     if ('PerformanceObserver' in window) {
       try {
@@ -173,6 +185,8 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   }
 
   private setupResourceMonitoring(): void {
+    if (!this.isBrowserEnvironment()) return;
+
     if ('PerformanceObserver' in window) {
       try {
         this.performanceObserver = new PerformanceObserver((list) => {
@@ -199,6 +213,8 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   }
 
   private setupMemoryMonitoring(): void {
+    if (!this.isBrowserEnvironment()) return;
+
     if ('memory' in performance) {
       this.memoryMonitorInterval = setInterval(() => {
         const memory = (performance as any).memory;
@@ -231,6 +247,10 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   }
 
   startSession(): string {
+    if (!this.isBrowserEnvironment()) {
+      return 'performance_session_unavailable';
+    }
+
     const sessionId = generateId('perf_session');
 
     this.currentSession = {
@@ -261,6 +281,10 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   }
 
   endSession(sessionId: string): PerformanceSession | null {
+    if (!this.isBrowserEnvironment()) {
+      return null;
+    }
+
     if (!this.currentSession || this.currentSession.sessionId !== sessionId) {
       return null;
     }
@@ -440,6 +464,8 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   }
 
   private saveSessionToStorage(session: PerformanceSession): void {
+    if (typeof localStorage === 'undefined') return;
+
     try {
       const sessions = this.getStoredSessions();
       sessions.push(session);
@@ -453,6 +479,8 @@ class PerformanceMonitor implements PerformanceMonitoringService {
   }
 
   private getStoredSessions(): PerformanceSession[] {
+    if (typeof localStorage === 'undefined') return [];
+
     try {
       const stored = localStorage.getItem('performance_sessions');
       return stored ? JSON.parse(stored) : [];
@@ -563,7 +591,9 @@ class PerformanceMonitor implements PerformanceMonitoringService {
       memoryUsage: [],
       bundleLoadTimes: {}
     };
-    localStorage.removeItem('performance_sessions');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('performance_sessions');
+    }
     this.notifyObservers('dataCleared', Date.now());
   }
 

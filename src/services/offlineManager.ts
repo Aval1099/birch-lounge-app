@@ -50,9 +50,18 @@ class OfflineManagerImpl implements OfflineManager {
   private eventListeners: Array<(event: BackgroundSyncEvent) => void> = [];
   private isInitialized = false;
 
+  private hasBrowserContext(): boolean {
+    return typeof window !== 'undefined' && typeof navigator !== 'undefined';
+  }
+
   constructor(config: Partial<OfflineManagerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.initializeConnectionMonitoring();
+    if (this.hasBrowserContext()) {
+      this.initializeConnectionMonitoring();
+    } else {
+      this.connectionStatus = 'offline';
+      console.warn('Offline manager disabled: browser APIs unavailable');
+    }
   }
 
   /**
@@ -60,6 +69,11 @@ class OfflineManagerImpl implements OfflineManager {
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
+
+    if (!this.hasBrowserContext()) {
+      console.warn('Skipping offline manager initialization: browser context unavailable');
+      return;
+    }
 
     try {
       await offlineStorage.initialize();
@@ -80,6 +94,8 @@ class OfflineManagerImpl implements OfflineManager {
    * Initialize connection monitoring
    */
   private initializeConnectionMonitoring(): void {
+    if (!this.hasBrowserContext()) return;
+
     // Monitor online/offline status
     window.addEventListener('online', () => {
       this.connectionStatus = 'online';
