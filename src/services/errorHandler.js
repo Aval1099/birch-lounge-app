@@ -228,13 +228,13 @@ export const errorHandler = {
       return 'storage';
     }
 
-    if (message.includes('api key') || message.includes('configuration')) {
-      return 'configuration';
+    // Authentication and authorization
+    if (message.includes('api key') || message.includes('unauthorized') || message.includes('forbidden')) {
+      return 'auth';
     }
 
-    // Authentication and authorization
-    if (message.includes('unauthorized') || message.includes('forbidden')) {
-      return 'auth';
+    if (message.includes('configuration')) {
+      return 'configuration';
     }
 
     // Validation and input

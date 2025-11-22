@@ -13,13 +13,13 @@ const Card = memo(forwardRef(({
   onClick,
   ...props
 }, ref) => {
-  const baseClasses = 'bg-gradient-to-br from-white to-green-50/30 dark:from-gray-800 dark:to-green-900/20 border border-green-200/50 dark:border-green-700/50 rounded-lg shadow-sm';
+  const baseClasses = 'border rounded-lg';
 
   const variantClasses = {
-    default: '',
-    elevated: 'bg-gradient-to-br from-white to-green-50/50 dark:from-gray-800 dark:to-green-900/30 shadow-lg',
-    outlined: 'border-2 border-green-300/50 dark:border-green-600/50',
-    ghost: 'border-transparent bg-gradient-to-br from-green-50/30 to-emerald-50/30 dark:from-gray-900/50 dark:to-green-900/30'
+    default: 'bg-white dark:bg-gray-800',
+    elevated: 'bg-white dark:bg-gray-800 shadow-lg',
+    outlined: 'bg-white dark:bg-gray-800 border-2',
+    ghost: 'border-transparent bg-gray-50 dark:bg-gray-900'
   };
 
   const paddingClasses = {
@@ -39,7 +39,7 @@ const Card = memo(forwardRef(({
     xl: 'shadow-xl'
   };
 
-  const hoverClasses = hover ? 'transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20 hover:-translate-y-1 cursor-pointer' : '';
+  const hoverClasses = hover ? 'transition-shadow hover:shadow-lg cursor-pointer' : '';
 
   const classes = [
     baseClasses,

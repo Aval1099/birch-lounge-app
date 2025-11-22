@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useDebounce } from './useDebounce';
-import type { AdvancedSearchOptions, SearchResult, SearchHistory } from '../types/hooks';
+import type { AdvancedSearchOptions, SearchResult } from '../types/hooks';
 
 /**
  * Advanced search hook with multi-field search, fuzzy matching, and performance optimization
@@ -28,7 +28,7 @@ export const useAdvancedSearch = <T = any>(data: T[] = [], options: AdvancedSear
 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([]);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [filters, setFilters] = useState<Record<string, any>>({});
   const [sortBy, setSortBy] = useState<string>('relevance');
   const [searchStats, setSearchStats] = useState({
@@ -278,13 +278,8 @@ export const useAdvancedSearch = <T = any>(data: T[] = [], options: AdvancedSear
   // Update search history
   useEffect(() => {
     if (debouncedSearchTerm && debouncedSearchTerm.length > 2) {
-      setSearchHistory((prev: SearchHistory[]) => {
-        const newEntry: SearchHistory = {
-          term: debouncedSearchTerm,
-          timestamp: Date.now(),
-          resultCount: searchResults.stats.totalResults
-        };
-        const newHistory = [newEntry, ...prev.filter(entry => entry.term !== debouncedSearchTerm)];
+      setSearchHistory((prev: string[]) => {
+        const newHistory = [debouncedSearchTerm, ...prev.filter(term => term !== debouncedSearchTerm)];
         return newHistory.slice(0, 10); // Keep last 10 searches
       });
     }
